@@ -1,47 +1,326 @@
-const { Booking } = require("../models");
+const {
+  Booking,
+  Room,
+  BookingRoom,
+  Bungalow
+} = require("../models");
 
-exports.createBooking = async(req,res)=>{
+const { Op } = require("sequelize");
+
+
+// Generate Booking Reference
+
+function generateReference() {
+
+  return (
+    "CB-" +
+    Date.now()
+  );
+
+}
+
+
+// Check Availability API
+
+exports.checkAvailability =
+async (req,res)=>{
 
   try{
 
-    const booking =
-      await Booking.create({
+    const {
+      roomId,
+      check_in,
+      check_out
+    } = req.body;
 
-        UserId:req.user.id,
+    const conflicts =
+      await Booking.findAll({
 
-        BungalowId:req.body.bungalowId,
+        include:[
+          {
+            model:Room,
+            where:{ id: roomId }
+          }
+        ],
 
-        check_in:req.body.check_in,
+        where:{
+          status:{
+            [Op.in]:[
+              "PENDING",
+              "APPROVED"
+            ]
+          },
 
-        check_out:req.body.check_out,
+          [Op.and]:[
+            {
+              check_in:{
+                [Op.lte]:check_out
+              }
+            },
 
-        form_file:req.file
-          ? req.file.filename
-          : null
+            {
+              check_out:{
+                [Op.gte]:check_in
+              }
+            }
+          ]
+        }
 
       });
 
-    res.json(booking);
+    if(conflicts.length > 0){
+
+      return res.json({
+
+        available:false,
+
+        message:
+          "Room already booked"
+
+      });
+
+    }
+
+    res.json({
+
+      available:true,
+
+      message:
+        "Room Available"
+
+    });
 
   }catch(err){
 
-    res.status(500).json(err);
+    res.status(500).json({
+      message:err.message
+    });
 
   }
 
 };
 
-exports.myBookings = async(req,res)=>{
+exports.createBooking =
+async(req,res)=>{
 
-  const bookings =
-    await Booking.findAll({
+try{
 
-      where:{
-        UserId:req.user.id
-      }
+let {
 
-    });
+ bungalowId,
 
-  res.json(bookings);
+ roomIds,
+
+ check_in,
+
+ check_out,
+
+ purpose,
+
+ guests_count
+
+} = req.body;
+
+// Convert roomIds string to array
+if(typeof roomIds === "string"){
+    roomIds = roomIds.split(",").map(Number);
+}
+
+console.log(roomIds);
+
+const bungalow =
+await Bungalow.findByPk(
+ bungalowId
+);
+
+if(!bungalow){
+
+ return res.status(404).json({
+  message:"Bungalow Not Found"
+ });
+
+}
+
+
+// CHECK ALL ROOMS
+
+for(const roomId of roomIds){
+
+ const conflicts =
+ await Booking.findAll({
+
+ include:[
+  {
+   model:Room,
+   where:{id:roomId}
+  }
+ ],
+
+ where:{
+
+ status:{
+ [Op.in]:
+ ["PENDING","APPROVED"]
+ },
+
+ [Op.and]:[
+  {
+   check_in:{
+    [Op.lte]:
+    check_out
+   }
+  },
+
+  {
+   check_out:{
+    [Op.gte]:
+    check_in
+   }
+  }
+ ]
+
+ }
+
+ });
+
+ if(conflicts.length>0){
+
+  return res.status(400).json({
+
+   message:
+   `Room ${roomId} already booked`
+
+  });
+
+ }
+
+}
+
+
+// CREATE BOOKING
+
+const booking =
+await Booking.create({
+
+ UserId:req.user.id,
+
+ BungalowId:bungalowId,
+
+ booking_reference:
+ generateReference(),
+
+ check_in,
+
+ check_out,
+
+ guests_count,
+
+ purpose,
+
+ form_file:
+ req.file
+ ? req.file.filename
+ : null
+
+});
+
+
+// ATTACH ROOMS
+
+let totalAmount = 0;
+
+const rooms =
+await Room.findAll({
+
+ where:{
+  id:roomIds
+ }
+
+});
+
+for(const room of rooms){
+
+ totalAmount +=
+ parseFloat(room.price);
+
+ await BookingRoom.create({
+
+  BookingId:booking.id,
+
+  RoomId:room.id,
+
+  room_price:room.price
+
+ });
+
+}
+
+
+// Number of days
+
+const days =
+Math.ceil(
+
+ (
+  new Date(check_out)
+  -
+  new Date(check_in)
+ ) /
+ (1000*60*60*24)
+
+);
+
+booking.total_amount =
+days * totalAmount;
+
+await booking.save();
+
+res.status(201).json({
+
+ message:
+ "Booking Created",
+
+ booking
+
+});
+
+}catch(err){
+
+ res.status(500).json({
+  message:err.message
+ });
+
+}
+
+};
+
+exports.myBookings =
+async(req,res)=>{
+
+try{
+
+const bookings =
+await Booking.findAll({
+
+ where:{
+  UserId:req.user.id
+ },
+
+ include:[
+  Room,
+  Bungalow
+ ]
+
+});
+
+res.json(bookings);
+
+}catch(err){
+
+ res.status(500).json({
+  message:err.message
+ });
+
+}
 
 };

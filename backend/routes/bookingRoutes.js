@@ -14,16 +14,20 @@ const storage =
 multer.diskStorage({
 
  destination:(req,file,cb)=>{
+
   cb(null,"uploads/");
+
  },
 
  filename:(req,file,cb)=>{
+
   cb(
    null,
-   Date.now() +
-   "-" +
-   file.originalname
+   Date.now()
+   + "-"
+   + file.originalname
   );
+
  }
 
 });
@@ -31,12 +35,27 @@ multer.diskStorage({
 const upload =
 multer({storage});
 
+
+// CHECK AVAILABILITY
+
+router.post(
+ "/check-availability",
+ auth,
+ booking.checkAvailability
+);
+
+
+// CREATE BOOKING
+
 router.post(
  "/create",
  auth,
  upload.single("form"),
  booking.createBooking
 );
+
+
+// MY BOOKINGS
 
 router.get(
  "/my-bookings",

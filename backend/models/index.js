@@ -28,14 +28,16 @@ Booking.belongsTo(Bungalow);
 Booking.belongsToMany(
   Room,
   {
-    through: BookingRoom
+    through: BookingRoom,
+    as: "rooms"
   }
 );
 
 Room.belongsToMany(
   Booking,
   {
-    through: BookingRoom
+    through: BookingRoom,
+    as: "bookings"
   }
 );
 

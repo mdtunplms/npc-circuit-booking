@@ -31,6 +31,11 @@ const Booking = sequelize.define("Booking", {
     defaultValue: 0
   },
 
+  booking_reference: {
+    type: DataTypes.STRING,
+    unique: true
+  },
+
   status: {
     type: DataTypes.ENUM(
       "PENDING",
