@@ -34,6 +34,11 @@ app.use(
  require("./routes/roomRoutes")
 );
 
+app.use(
+ "/api/admin",
+ require("./routes/adminRoutes")
+);
+
 sequelize.sync()
 .then(()=>{
 

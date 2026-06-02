@@ -38,8 +38,9 @@ async (req,res)=>{
 
         include:[
           {
-            model:Room,
-            where:{ id: roomId }
+          model: Room,
+          as: "rooms",
+          where:{ id: roomId }
           }
         ],
 
@@ -151,9 +152,10 @@ for(const roomId of roomIds){
 
  include:[
   {
-   model:Room,
-   where:{id:roomId}
-  }
+      model: Room,
+      as: "rooms",
+      where:{ id: roomId }
+    }
  ],
 
  where:{
@@ -306,10 +308,13 @@ await Booking.findAll({
   UserId:req.user.id
  },
 
- include:[
-  Room,
-  Bungalow
- ]
+include:[
+ {
+  model:Room,
+  as:"rooms"
+ },
+ Bungalow
+]
 
 });
 
