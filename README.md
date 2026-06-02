@@ -3,7 +3,7 @@ npc circuit booking
 
 ## test apis in postman
 
-### register 
+### register  
 api - 'http://localhost:5000/api/auth/register'
 body : 
 {
@@ -12,7 +12,7 @@ body :
   "password":"123456"
 }
 
-### login 
+### login  
 api - 'http://localhost:5000/api/auth/login'
 body: 
 {
@@ -20,10 +20,10 @@ body:
   "password":"123456"
 }
 
-### create banglow
+### create banglow  
 run: 'node seeders/seedBungalows.js'
 
-### create room under a Banglow
+### create room under a Banglow  
 update the user role to 'super-admin'
 login again
 copy the new jwt token
@@ -38,6 +38,6 @@ body:
   "price": 5000
 }
 
-### view rooms
+### view rooms  
 api - 'http://localhost:5000/api/rooms'
 
