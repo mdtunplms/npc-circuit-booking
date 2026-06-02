@@ -29,6 +29,11 @@ app.use(
  require("./routes/bookingRoutes")
 );
 
+app.use(
+ "/api/rooms",
+ require("./routes/roomRoutes")
+);
+
 sequelize.sync()
 .then(()=>{
 
