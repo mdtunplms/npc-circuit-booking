@@ -185,6 +185,33 @@ booking.status =
 
 await booking.save();
 
+const user =
+await User.findByPk(
+ booking.UserId
+);
+
+await sendEmail(
+
+ user.email,
+
+ "Booking Cancelled",
+
+ `
+ <h2>Booking Cancelled</h2>
+
+ <p>
+ Reference:
+ ${booking.booking_reference}
+ </p>
+
+ <p>
+ Status:
+ CANCELLED
+ </p>
+ `
+
+);
+
 res.json({
 
  message:

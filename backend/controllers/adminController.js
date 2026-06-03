@@ -5,6 +5,9 @@ const {
   Bungalow
 } = require("../models");
 
+const sendEmail =
+require("../services/emailService");
+
 
 // Get All Bookings
 
@@ -52,7 +55,10 @@ try{
 
 const booking =
 await Booking.findByPk(
- req.params.id
+ req.params.id,
+  {
+  include:[User]
+ }
 );
 
 if(!booking){
@@ -68,6 +74,32 @@ booking.status =
 "APPROVED";
 
 await booking.save();
+
+await sendEmail(
+
+ booking.User.email,
+
+ "Booking Approved",
+
+ `
+ <h2>Booking Approved</h2>
+
+ <p>
+ Reference:
+ ${booking.booking_reference}
+ </p>
+
+ <p>
+ Status:
+ APPROVED
+ </p>
+
+ <p>
+ Your room booking has been approved.
+ </p>
+ `
+
+);
 
 res.json({
 
@@ -114,6 +146,28 @@ booking.status =
 "REJECTED";
 
 await booking.save();
+
+await sendEmail(
+
+ booking.User.email,
+
+ "Booking Rejected",
+
+ `
+ <h2>Booking Rejected</h2>
+
+ <p>
+ Reference:
+ ${booking.booking_reference}
+ </p>
+
+ <p>
+ Status:
+ REJECTED
+ </p>
+ `
+
+);
 
 res.json({
 

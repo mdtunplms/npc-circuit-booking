@@ -7,6 +7,12 @@ const {
 
 const { Op } = require("sequelize");
 
+const sendEmail =
+require("../services/emailService");
+
+const { User } =
+require("../models");
+
 
 // Generate Booking Reference
 
@@ -276,6 +282,35 @@ booking.total_amount =
 days * totalAmount;
 
 await booking.save();
+
+// email notify
+
+const user =
+await User.findByPk(
+ req.user.id
+);
+
+await sendEmail(
+
+ user.email,
+
+ "Booking Request Submitted",
+
+ `
+ <h2>Booking Request Received</h2>
+
+ <p>
+ Reference:
+ ${booking.booking_reference}
+ </p>
+
+ <p>
+ Status:
+ ${booking.status}
+ </p>
+ `
+
+);
 
 res.status(201).json({
 
