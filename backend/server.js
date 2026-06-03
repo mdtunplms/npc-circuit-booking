@@ -46,6 +46,11 @@ app.use(
  )
 );
 
+app.use(
+ "/api/calendar",
+ require("./routes/calendarRoutes")
+);
+
 sequelize.sync()
 .then(()=>{
 
