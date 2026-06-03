@@ -33,6 +33,11 @@ const User = sequelize.define("User", {
       "USER"
     ),
     defaultValue: "USER"
+  },
+
+  assigned_bungalow_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 });
 

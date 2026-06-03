@@ -39,6 +39,13 @@ app.use(
  require("./routes/adminRoutes")
 );
 
+app.use(
+ "/api/bungalow-admin",
+ require(
+ "./routes/bungalowAdminRoutes"
+ )
+);
+
 sequelize.sync()
 .then(()=>{
 
