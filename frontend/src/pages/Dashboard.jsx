@@ -1,5 +1,14 @@
+import {
+ useEffect,
+ useState
+} from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+
+import {
+ occupancyReport
+}
+from "../api/adminApi";
 
 export default function Dashboard() {
 
@@ -7,6 +16,38 @@ export default function Dashboard() {
     JSON.parse(
     localStorage.getItem("user") || "null"
     );
+
+    const [report,
+setReport]
+=
+useState(null);
+
+useEffect(()=>{
+
+loadReport();
+
+},[]);
+
+const loadReport =
+async()=>{
+
+try{
+
+const res =
+await occupancyReport();
+
+setReport(
+ res.data
+);
+
+}catch(err){
+
+console.log(err);
+
+}
+
+};
+
 
   return (
 
@@ -32,6 +73,80 @@ export default function Dashboard() {
           <p>
             Role : {user?.role}
           </p>
+
+          <div className="row">
+
+<div className="col-md-4">
+
+<div className=
+"card p-3"
+>
+
+<h5>
+Total Bookings
+</h5>
+
+<h2>
+
+{
+report
+?.totalBookings
+}
+
+</h2>
+
+</div>
+
+</div>
+
+<div className="col-md-4">
+
+<div className=
+"card p-3"
+>
+
+<h5>
+Occupied
+</h5>
+
+<h2>
+
+{
+report
+?.occupiedBookings
+}
+
+</h2>
+
+</div>
+
+</div>
+
+<div className="col-md-4">
+
+<div className=
+"card p-3"
+>
+
+<h5>
+Occupancy
+</h5>
+
+<h2>
+
+{
+report
+?.occupancyRate
+}
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
 
         </div>
 

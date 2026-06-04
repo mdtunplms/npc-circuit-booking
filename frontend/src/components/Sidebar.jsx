@@ -6,7 +6,7 @@ export default function Sidebar() {
   JSON.parse(
   localStorage.getItem("user") || "null"
   );
-  
+
   return (
 
     <div
@@ -33,6 +33,13 @@ export default function Sidebar() {
         >
           Rooms
         </Link>
+
+      <Link
+      to="/calendar"
+      className="list-group-item"
+      >
+      Calendar
+      </Link>
 
         <Link
           to="/my-bookings"

@@ -21,6 +21,12 @@ import Rooms from "./pages/Rooms";
 import MyBookings from "./pages/MyBookings";
 import CreateBooking from "./pages/CreateBooking";
 
+import Calendar
+from "./pages/Calendar";
+
+import AdminBookings
+from "./pages/AdminBookings";
+
 function App(){
 
 return(
@@ -76,6 +82,24 @@ return(
   <ProtectedRoute>
    <CreateBooking/>
   </ProtectedRoute>
+ }
+/>
+
+<Route
+ path="/calendar"
+ element={
+ <ProtectedRoute>
+ <Calendar/>
+ </ProtectedRoute>
+ }
+/>
+
+<Route
+ path="/admin-bookings"
+ element={
+ <ProtectedRoute>
+ <AdminBookings/>
+ </ProtectedRoute>
  }
 />
 

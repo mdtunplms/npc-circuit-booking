@@ -130,8 +130,11 @@ try{
 
 const booking =
 await Booking.findByPk(
- req.params.id
-);
+ req.params.id,
+  {
+  include:[User]
+ }
+);  
 
 if(!booking){
 
