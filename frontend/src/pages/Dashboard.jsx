@@ -1,19 +1,44 @@
-export default function Dashboard(){
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
 
-return(
+export default function Dashboard() {
 
-<div className="container">
+    const user =
+    JSON.parse(
+    localStorage.getItem("user") || "null"
+    );
 
-<h1>
+  return (
 
-Northern Provincial Council
+    <>
+      <Navbar />
 
-Circuit Booking System
+      <div className="row">
 
-</h1>
+        <div className="col-md-2">
+          <Sidebar />
+        </div>
 
-</div>
+        <div className="col-md-10 p-4">
 
-);
+          <h2>Dashboard</h2>
+
+          <hr />
+
+          <h4>
+            Welcome {user?.full_name}
+          </h4>
+
+          <p>
+            Role : {user?.role}
+          </p>
+
+        </div>
+
+      </div>
+
+    </>
+
+  );
 
 }

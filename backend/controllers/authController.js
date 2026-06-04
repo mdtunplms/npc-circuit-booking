@@ -35,55 +35,75 @@ exports.register = async(req,res)=>{
 
 exports.login = async(req,res)=>{
 
-  try{
+try{
 
-    const {email,password} = req.body;
+const {
+ email,
+ password
+} = req.body;
 
-    const user =
-      await User.findOne({
-        where:{email}
-      });
+const user =
+await User.findOne({
+ where:{ email }
+});
 
-    if(!user){
-      return res.status(404).json({
-        message:"User not found"
-      });
-    }
+if(!user){
 
-    const match =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+ return res.status(404).json({
+  message:"User not found"
+ });
 
-    if(!match){
+}
 
-      return res.status(400).json({
-        message:"Wrong password"
-      });
+const valid =
+await bcrypt.compare(
+ password,
+ user.password
+);
 
-    }
+if(!valid){
 
-    const token =
-      jwt.sign(
-        {
-          id:user.id,
-          role:user.role
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn:"7d"
-        }
-      );
+ return res.status(400).json({
+  message:"Invalid Password"
+ });
 
-    res.json({
-      token
-    });
+}
 
-  }catch(err){
+const token =
+jwt.sign(
 
-    res.status(500).json(err);
+ {
+  id:user.id,
+  role:user.role
+ },
 
-  }
+ process.env.JWT_SECRET,
+
+ {
+  expiresIn:"7d"
+ }
+
+);
+
+res.json({
+
+ token,
+
+ user:{
+  id:user.id,
+  full_name:user.full_name,
+  email:user.email,
+  role:user.role
+ }
+
+});
+
+}catch(err){
+
+ res.status(500).json({
+  message:err.message
+ });
+
+}
 
 };
