@@ -1,6 +1,16 @@
 # npc-circuit-booking
 npc circuit booking
 
+# .env content
+PORT=5000
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=npc_circuit_booking
+
+JWT_SECRET=npc_super_secret_key
+
 ## test apis in postman
 
 ### register  
