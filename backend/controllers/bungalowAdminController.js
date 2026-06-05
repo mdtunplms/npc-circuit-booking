@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const {
   Booking,
   User,
@@ -294,6 +295,102 @@ res.json({
  });
 
 }
+
+};
+
+// today checkIN
+
+exports.todayCheckins =
+async (req, res) => {
+
+  try {
+
+    const start = new Date();
+    start.setHours(
+      0,0,0,0
+      );
+    const end = new Date();
+    end.setHours(
+    23,59,59,999
+    );
+    
+    const bookings =
+      await Booking.findAll({
+
+      where:{
+
+        check_in:{
+          [Op.between]:
+          [start,end]
+        },
+
+        status:"APPROVED"
+      },
+
+        include: [
+          User,
+          Bungalow
+        ]
+
+      });
+
+    res.json(bookings);
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+};
+
+// today checkOUT
+
+exports.todayCheckouts =
+async (req, res) => {
+
+  try {
+
+    const start = new Date();
+    start.setHours(
+      0,0,0,0
+      );
+    const end = new Date();
+    end.setHours(
+    23,59,59,999
+    );
+
+    const bookings =
+      await Booking.findAll({
+
+        where:{
+
+          check_in:{
+            [Op.between]:
+            [start,end]
+          },
+
+          status:"APPROVED"
+        },
+
+        include: [
+          User,
+          Bungalow
+        ]
+
+      });
+
+    res.json(bookings);
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
 
 };
 

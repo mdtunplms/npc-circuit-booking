@@ -10,3 +10,18 @@ export const createBooking =
 "/bookings/create",
 data
 );
+
+export const uploadForm = (id, formData) => {
+
+  return api.post(
+    `/bookings/${id}/upload-form`,
+    formData,
+    {
+      headers: {
+        "Content-Type":
+        "multipart/form-data"
+      }
+    }
+  );
+
+};

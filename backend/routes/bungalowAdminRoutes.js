@@ -77,6 +77,30 @@ router.put(
  controller.checkOut
 );
 
+// today checkIN
+
+router.get(
+  "/today-checkins",
+  auth,
+  role(
+    "SUPER_ADMIN",
+    "ADMIN"
+  ),
+  controller.todayCheckins
+);
+
+// today checkout
+
+router.get(
+  "/today-checkouts",
+  auth,
+  role(
+    "SUPER_ADMIN",
+    "ADMIN"
+  ),
+  controller.todayCheckouts
+);
+
 
 // Occupancy Report
 

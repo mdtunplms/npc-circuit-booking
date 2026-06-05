@@ -4,6 +4,9 @@ import {
 }
 from "react";
 
+import StatusBadge
+from "../components/StatusBadge";
+
 import Navbar
 from "../components/Navbar";
 
@@ -85,7 +88,11 @@ bookings.map(item=>(
 </td>
 
 <td>
-{item.status}
+
+<StatusBadge
+ status={item.status}
+/>
+
 </td>
 
 <td>

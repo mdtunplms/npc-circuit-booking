@@ -1,53 +1,41 @@
-import {
- useEffect,
- useState
-} from "react";
+import { useEffect, useState } from "react";
+
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-import {
- occupancyReport
-}
-from "../api/adminApi";
+import OccupancyChart from "../components/OccupancyChart";
+import TodayCheckins from "../components/TodayCheckins";
+import TodayCheckouts from "../components/TodayCheckouts";
+
+import { occupancyReport } from "../api/adminApi";
 
 export default function Dashboard() {
 
-    const user =
-    JSON.parse(
+  const user = JSON.parse(
     localStorage.getItem("user") || "null"
-    );
+  );
 
-    const [report,
-setReport]
-=
-useState(null);
+  const [report, setReport] = useState(null);
 
-useEffect(()=>{
+  useEffect(() => {
+    loadReport();
+  }, []);
 
-loadReport();
+  const loadReport = async () => {
 
-},[]);
+    try {
 
-const loadReport =
-async()=>{
+      const res = await occupancyReport();
 
-try{
+      setReport(res.data);
 
-const res =
-await occupancyReport();
+    } catch (err) {
 
-setReport(
- res.data
-);
+      console.log(err);
 
-}catch(err){
+    }
 
-console.log(err);
-
-}
-
-};
-
+  };
 
   return (
 
@@ -56,9 +44,13 @@ console.log(err);
 
       <div className="row">
 
+        {/* Sidebar */}
+
         <div className="col-md-2">
           <Sidebar />
         </div>
+
+        {/* Main Content */}
 
         <div className="col-md-10 p-4">
 
@@ -74,79 +66,108 @@ console.log(err);
             Role : {user?.role}
           </p>
 
+          {/* Statistics Cards */}
+
           <div className="row">
 
-<div className="col-md-4">
+            <div className="col-md-4">
 
-<div className=
-"card p-3"
->
+              <div className="card p-3 shadow-sm">
 
-<h5>
-Total Bookings
-</h5>
+                <h5>Total Bookings</h5>
 
-<h2>
+                <h2>
+                  {report?.totalBookings || 0}
+                </h2>
 
-{
-report
-?.totalBookings
-}
+              </div>
 
-</h2>
+            </div>
 
-</div>
+            <div className="col-md-4">
 
-</div>
+              <div className="card p-3 shadow-sm">
 
-<div className="col-md-4">
+                <h5>Occupied Rooms</h5>
 
-<div className=
-"card p-3"
->
+                <h2>
+                  {report?.occupiedBookings || 0}
+                </h2>
 
-<h5>
-Occupied
-</h5>
+              </div>
 
-<h2>
+            </div>
 
-{
-report
-?.occupiedBookings
-}
+            <div className="col-md-4">
 
-</h2>
+              <div className="card p-3 shadow-sm">
 
-</div>
+                <h5>Occupancy Rate</h5>
 
-</div>
+                <h2>
+                  {report?.occupancyRate || "0%"}
+                </h2>
 
-<div className="col-md-4">
+              </div>
 
-<div className=
-"card p-3"
->
+            </div>
 
-<h5>
-Occupancy
-</h5>
+          </div>
 
-<h2>
+          {/* Occupancy Chart */}
 
-{
-report
-?.occupancyRate
-}
+{/* Today's Checkins / Checkouts */}
 
-</h2>
+<div className="row mt-4">
+
+  <div className="col-lg-6 col-md-12 mb-3">
+
+    <TodayCheckins />
+
+  </div>
+
+  <div className="col-lg-6 col-md-12 mb-3">
+
+    <TodayCheckouts />
+
+  </div>
 
 </div>
 
-</div>
+{/* Occupancy Chart */}
+
+<div className="row mt-4">
+
+  <div className="col-lg-8 col-md-12">
+
+    <div className="card shadow-sm">
+
+      <div className="card-body">
+
+        <h5 className="card-title mb-3">
+          Monthly Occupancy Report
+        </h5>
+
+        <div
+          style={{
+            height: "280px",
+            width: "100%"
+          }}
+        >
+
+          <OccupancyChart
+            report={report}
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 
 </div>
-
 
         </div>
 

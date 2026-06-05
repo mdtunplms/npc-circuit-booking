@@ -27,6 +27,9 @@ from "./pages/Calendar";
 import AdminBookings
 from "./pages/AdminBookings";
 
+import RoomCalendar
+from "./pages/RoomCalendar";
+
 function App(){
 
 return(
@@ -100,6 +103,15 @@ return(
  <ProtectedRoute>
  <AdminBookings/>
  </ProtectedRoute>
+ }
+/>
+
+<Route
+ path="/room-calendar"
+ element={
+  <ProtectedRoute>
+   <RoomCalendar/>
+  </ProtectedRoute>
  }
 />
 
