@@ -11,6 +11,11 @@ DB_NAME=npc_circuit_booking
 
 JWT_SECRET=npc_super_secret_key
 
+## create admin user
+UPDATE Users
+SET role='SUPER_ADMIN'
+WHERE email='admin@test.com';
+
 ## test apis in postman
 
 ### register  
