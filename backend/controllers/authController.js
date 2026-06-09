@@ -3,107 +3,72 @@ const jwt = require("jsonwebtoken");
 
 const { User } = require("../models");
 
-exports.register = async(req,res)=>{
+exports.register = async (req, res) => {
+  try {
+    const { full_name, email, password } = req.body;
 
-  try{
+    const hash = await bcrypt.hash(password, 10);
 
-    const {
+    const user = await User.create({
       full_name,
       email,
-      password
-    } = req.body;
-
-    const hash =
-      await bcrypt.hash(password,10);
-
-    const user =
-      await User.create({
-        full_name,
-        email,
-        password:hash
-      });
+      password: hash,
+    });
 
     res.json(user);
-
-  }catch(err){
-
+  } catch (err) {
     res.status(500).json(err);
-
   }
-
 };
 
-exports.login = async(req,res)=>{
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-try{
+    const user = await User.findOne({
+      where: { email },
+    });
 
-const {
- email,
- password
-} = req.body;
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
 
-const user =
-await User.findOne({
- where:{ email }
-});
+    const valid = await bcrypt.compare(password, user.password);
 
-if(!user){
+    if (!valid) {
+      return res.status(400).json({
+        message: "Invalid Password",
+      });
+    }
 
- return res.status(404).json({
-  message:"User not found"
- });
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+      },
 
-}
+      process.env.JWT_SECRET,
 
-const valid =
-await bcrypt.compare(
- password,
- user.password
-);
+      {
+        expiresIn: "7d",
+      },
+    );
 
-if(!valid){
+    res.json({
+      token,
 
- return res.status(400).json({
-  message:"Invalid Password"
- });
-
-}
-
-const token =
-jwt.sign(
-
- {
-  id:user.id,
-  role:user.role
- },
-
- process.env.JWT_SECRET,
-
- {
-  expiresIn:"7d"
- }
-
-);
-
-res.json({
-
- token,
-
- user:{
-  id:user.id,
-  full_name:user.full_name,
-  email:user.email,
-  role:user.role
- }
-
-});
-
-}catch(err){
-
- res.status(500).json({
-  message:err.message
- });
-
-}
-
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
