@@ -13,3 +13,10 @@ export const occupancyReport = () =>
   api.get(
     "/bungalow-admin/occupancy-report"
   );
+
+export const roleDashboard =
+()=>
+
+api.get(
+ "/admin/role-dashboard"
+);

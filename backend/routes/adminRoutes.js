@@ -62,4 +62,12 @@ router.get(
  adminController.dashboard
 );
 
+// dashboard role based
+
+router.get(
+ "/role-dashboard",
+ auth,
+ adminController.roleDashboard
+);
+
 module.exports = router;

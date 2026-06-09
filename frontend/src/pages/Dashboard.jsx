@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
+import DashboardCards from "../components/DashboardCards";
 import OccupancyChart from "../components/OccupancyChart";
 import TodayCheckins from "../components/TodayCheckins";
 import TodayCheckouts from "../components/TodayCheckouts";
 
-import { occupancyReport } from "../api/adminApi";
+import {
+  roleDashboard,
+  occupancyReport
+} from "../api/adminApi";
 
 export default function Dashboard() {
 
@@ -15,27 +19,84 @@ export default function Dashboard() {
     localStorage.getItem("user") || "null"
   );
 
-  const [report, setReport] = useState(null);
+  const [dashboard, setDashboard] =
+    useState(null);
+
+  const [report, setReport] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    loadReport();
+
+    initializeDashboard();
+
   }, []);
 
-  const loadReport = async () => {
+  const initializeDashboard =
+    async () => {
 
-    try {
+      try {
 
-      const res = await occupancyReport();
+        // Load dashboard data first
+        const dashboardRes =
+          await roleDashboard();
 
-      setReport(res.data);
+        setDashboard(
+          dashboardRes.data
+        );
 
-    } catch (err) {
+        const role =
+          dashboardRes.data.role;
 
-      console.log(err);
+        // Only Admin/Super Admin load occupancy report
+        if (
+          role === "ADMIN" ||
+          role === "SUPER_ADMIN"
+        ) {
 
-    }
+          const reportRes =
+            await occupancyReport();
 
-  };
+          setReport(
+            reportRes.data
+          );
+
+        }
+
+      } catch (err) {
+
+        console.log(err);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+  if (loading) {
+
+    return (
+
+      <>
+        <Navbar />
+
+        <div className="container mt-4">
+
+          <h4>
+            Loading Dashboard...
+          </h4>
+
+        </div>
+
+      </>
+
+    );
+
+  }
 
   return (
 
@@ -47,14 +108,18 @@ export default function Dashboard() {
         {/* Sidebar */}
 
         <div className="col-md-2">
+
           <Sidebar />
+
         </div>
 
         {/* Main Content */}
 
         <div className="col-md-10 p-4">
 
-          <h2>Dashboard</h2>
+          <h2>
+            Dashboard
+          </h2>
 
           <hr />
 
@@ -66,108 +131,101 @@ export default function Dashboard() {
             Role : {user?.role}
           </p>
 
-          {/* Statistics Cards */}
+          {/* Role Based Statistics */}
 
-          <div className="row">
+          {
 
-            <div className="col-md-4">
+            dashboard && (
 
-              <div className="card p-3 shadow-sm">
+              <DashboardCards
 
-                <h5>Total Bookings</h5>
+                role={
+                  dashboard.role
+                }
 
-                <h2>
-                  {report?.totalBookings || 0}
-                </h2>
+                data={
+                  dashboard
+                }
+
+              />
+
+            )
+
+          }
+
+          {/* ADMIN ONLY */}
+
+          {
+
+            user?.role === "ADMIN" && (
+
+              <div className="row mt-4">
+
+                <div className="col-lg-6 col-md-12 mb-3">
+
+                  <TodayCheckins />
+
+                </div>
+
+                <div className="col-lg-6 col-md-12 mb-3">
+
+                  <TodayCheckouts />
+
+                </div>
 
               </div>
 
-            </div>
+            )
 
-            <div className="col-md-4">
+          }
 
-              <div className="card p-3 shadow-sm">
+          {/* ADMIN + SUPER ADMIN */}
 
-                <h5>Occupied Rooms</h5>
+          {
 
-                <h2>
-                  {report?.occupiedBookings || 0}
-                </h2>
+            (
+              user?.role === "ADMIN" ||
+              user?.role === "SUPER_ADMIN"
+            ) && (
+
+              <div className="row mt-4">
+
+                <div className="col-lg-8 col-md-12">
+
+                  <div className="card shadow-sm">
+
+                    <div className="card-body">
+
+                      <h5 className="card-title mb-3">
+
+                        Monthly Occupancy Report
+
+                      </h5>
+
+                      <div
+                        style={{
+                          height: "280px",
+                          width: "100%"
+                        }}
+                      >
+
+                        <OccupancyChart
+                          report={report}
+                        />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
 
               </div>
 
-            </div>
+            )
 
-            <div className="col-md-4">
-
-              <div className="card p-3 shadow-sm">
-
-                <h5>Occupancy Rate</h5>
-
-                <h2>
-                  {report?.occupancyRate || "0%"}
-                </h2>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Occupancy Chart */}
-
-{/* Today's Checkins / Checkouts */}
-
-<div className="row mt-4">
-
-  <div className="col-lg-6 col-md-12 mb-3">
-
-    <TodayCheckins />
-
-  </div>
-
-  <div className="col-lg-6 col-md-12 mb-3">
-
-    <TodayCheckouts />
-
-  </div>
-
-</div>
-
-{/* Occupancy Chart */}
-
-<div className="row mt-4">
-
-  <div className="col-lg-8 col-md-12">
-
-    <div className="card shadow-sm">
-
-      <div className="card-body">
-
-        <h5 className="card-title mb-3">
-          Monthly Occupancy Report
-        </h5>
-
-        <div
-          style={{
-            height: "280px",
-            width: "100%"
-          }}
-        >
-
-          <OccupancyChart
-            report={report}
-          />
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
+          }
 
         </div>
 

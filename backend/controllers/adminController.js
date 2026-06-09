@@ -250,3 +250,128 @@ res.json({
 }
 
 };
+
+// rolebased dashboard
+
+exports.roleDashboard =
+async(req,res)=>{
+
+try{
+
+const role =
+req.user.role;
+
+if(role==="SUPER_ADMIN"){
+
+ const totalUsers =
+ await User.count();
+
+ const totalRooms =
+ await Room.count();
+
+ const totalBungalows =
+ await Bungalow.count();
+
+ const totalBookings =
+ await Booking.count();
+
+ return res.json({
+
+  role,
+
+  totalUsers,
+
+  totalRooms,
+
+  totalBungalows,
+
+  totalBookings
+
+ });
+
+}
+
+if(role==="ADMIN"){
+
+ const pendingBookings =
+ await Booking.count({
+
+  where:{
+   status:"PENDING"
+  }
+
+ });
+
+ const approvedBookings =
+ await Booking.count({
+
+  where:{
+   status:"APPROVED"
+  }
+
+ });
+
+ return res.json({
+
+  role,
+
+  pendingBookings,
+
+  approvedBookings
+
+ });
+
+}
+
+ const myBookings =
+ await Booking.count({
+
+  where:{
+   user_id:req.user.id
+  }
+
+ });
+
+ const pendingRequests =
+ await Booking.count({
+
+  where:{
+   user_id:req.user.id,
+   status:"PENDING"
+  }
+
+ });
+
+ const approvedRequests =
+ await Booking.count({
+
+  where:{
+   user_id:req.user.id,
+   status:"APPROVED"
+  }
+
+ });
+
+ res.json({
+
+  role,
+
+  myBookings,
+
+  pendingRequests,
+
+  approvedRequests
+
+ });
+
+}catch(err){
+
+ res.status(500).json({
+
+  message:err.message
+
+ });
+
+}
+
+};
