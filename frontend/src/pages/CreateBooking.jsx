@@ -1,189 +1,116 @@
-import {
- useState,
- useEffect
-}
-from "react";
+import { useState, useEffect } from "react";
 
-import Navbar
-from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
-import Sidebar
-from "../components/Sidebar";
+import Sidebar from "../components/Sidebar";
 
-import {
- createBooking
-}
-from "../api/bookingApi";
+import { createBooking } from "../api/bookingApi";
 
-import {
- getRooms
-}
-from "../api/roomApi";
+import { getRooms } from "../api/roomApi";
 
-export default function CreateBooking(){
+export default function CreateBooking() {
+  const [rooms, setRooms] = useState([]);
 
-const [rooms,setRooms]
-=
-useState([]);
+  const [form, setForm] = useState({
+    bungalowId: 1,
 
-const [form,setForm]
-=
-useState({
+    roomIds: "",
 
- bungalowId:1,
+    check_in: "",
 
- roomIds:"",
+    check_out: "",
 
- check_in:"",
+    purpose: "",
 
- check_out:"",
+    guests_count: 1,
+  });
 
- purpose:"",
+  useEffect(() => {
+    loadRooms();
+  }, []);
 
- guests_count:1
+  const loadRooms = async () => {
+    const res = await getRooms();
 
-});
+    setRooms(res.data);
+  };
 
-useEffect(()=>{
+  const submit = async (e) => {
+    e.preventDefault();
 
-loadRooms();
+    await createBooking(form);
 
-},[]);
+    alert("Booking Submitted");
+  };
 
-const loadRooms =
-async()=>{
+  return (
+    <>
+      <Navbar />
 
-const res =
-await getRooms();
+      <div className="row">
+        <div className="col-md-2">
+          <Sidebar />
+        </div>
 
-setRooms(
- res.data
-);
+        <div className="col-md-10 p-4">
+          <h2>Create Booking</h2>
 
-};
+          <form onSubmit={submit}>
+            <select
+              className="form-control mb-2"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  roomIds: e.target.value,
+                })
+              }
+            >
+              <option>Select Room</option>
 
-const submit =
-async(e)=>{
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  {room.room_no}
+                </option>
+              ))}
+            </select>
 
-e.preventDefault();
+            <input
+              type="date"
+              className="form-control mb-2"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  check_in: e.target.value,
+                })
+              }
+            />
 
-await createBooking(
- form
-);
+            <input
+              type="date"
+              className="form-control mb-2"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  check_out: e.target.value,
+                })
+              }
+            />
 
-alert(
-"Booking Submitted"
-);
+            <textarea
+              className="form-control mb-2"
+              placeholder="Purpose"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  purpose: e.target.value,
+                })
+              }
+            />
 
-};
-
-return(
-
-<>
-
-<Navbar/>
-
-<div className="row">
-
-<div className="col-md-2">
-<Sidebar/>
-</div>
-
-<div className="col-md-10 p-4">
-
-<h2>Create Booking</h2>
-
-<form onSubmit={submit}>
-
-<select
-className="form-control mb-2"
-
-onChange={(e)=>
-setForm({
-...form,
-roomIds:
-e.target.value
-})
-}
->
-
-<option>
-Select Room
-</option>
-
-{
-rooms.map(room=>(
-
-<option
-key={room.id}
-value={room.id}
->
-
-{room.room_no}
-
-</option>
-
-))
-}
-
-</select>
-
-<input
-type="date"
-className="form-control mb-2"
-
-onChange={(e)=>
-setForm({
-...form,
-check_in:
-e.target.value
-})
-}
-/>
-
-<input
-type="date"
-className="form-control mb-2"
-
-onChange={(e)=>
-setForm({
-...form,
-check_out:
-e.target.value
-})
-}
-/>
-
-<textarea
-className="form-control mb-2"
-
-placeholder="Purpose"
-
-onChange={(e)=>
-setForm({
-...form,
-purpose:
-e.target.value
-})
-}
-/>
-
-<button
-className="btn btn-success"
->
-
-Submit Booking
-
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-</>
-
-);
-
+            <button className="btn btn-success">Submit Booking</button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
 }

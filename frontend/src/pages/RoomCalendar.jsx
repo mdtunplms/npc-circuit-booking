@@ -1,63 +1,29 @@
-import {
- useEffect,
- useState
-}
-from "react";
+import { useEffect, useState } from "react";
 
-import FullCalendar
-from "@fullcalendar/react";
+import FullCalendar from "@fullcalendar/react";
 
-import dayGridPlugin
-from "@fullcalendar/daygrid";
+import dayGridPlugin from "@fullcalendar/daygrid";
 
-import {
- roomCalendar
-}
-from "../api/calendarApi";
+import { roomCalendar } from "../api/calendarApi";
 
-export default function
-RoomCalendar(){
+export default function RoomCalendar() {
+  const [events, setEvents] = useState([]);
 
-const [events,
-setEvents]
-=
-useState([]);
+  useEffect(() => {
+    load();
+  }, []);
 
-useEffect(()=>{
+  const load = async () => {
+    const res = await roomCalendar(1);
 
-load();
+    setEvents(res.data);
+  };
 
-},[]);
-
-const load =
-async()=>{
-
-const res =
-await roomCalendar(
- 1
-);
-
-setEvents(
- res.data
-);
-
-};
-
-return(
-
-<FullCalendar
-
-plugins={[
- dayGridPlugin
-]}
-
-initialView=
-"dayGridMonth"
-
-events={events}
-
-/>
-
-);
-
+  return (
+    <FullCalendar
+      plugins={[dayGridPlugin]}
+      initialView="dayGridMonth"
+      events={events}
+    />
+  );
 }

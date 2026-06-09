@@ -1,123 +1,69 @@
-import {
- useEffect,
- useState
-}
-from "react";
+import { useEffect, useState } from "react";
 
-import StatusBadge
-from "../components/StatusBadge";
+import StatusBadge from "../components/StatusBadge";
 
-import Navbar
-from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
-import Sidebar
-from "../components/Sidebar";
+import Sidebar from "../components/Sidebar";
 
-import {
- myBookings
-}
-from "../api/bookingApi";
+import { myBookings } from "../api/bookingApi";
 
-export default function MyBookings(){
+export default function MyBookings() {
+  const [bookings, setBookings] = useState([]);
 
-const [bookings,setBookings]
-=
-useState([]);
+  useEffect(() => {
+    loadBookings();
+  }, []);
 
-useEffect(()=>{
+  const loadBookings = async () => {
+    const res = await myBookings();
 
-loadBookings();
+    setBookings(res.data);
+  };
 
-},[]);
+  return (
+    <>
+      <Navbar />
 
-const loadBookings =
-async()=>{
+      <div className="row">
+        <div className="col-md-2">
+          <Sidebar />
+        </div>
 
-const res =
-await myBookings();
+        <div className="col-md-10 p-4">
+          <h2>My Bookings</h2>
 
-setBookings(
- res.data
-);
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Reference</th>
 
-};
+                <th>Status</th>
 
-return(
+                <th>Check In</th>
 
-<>
+                <th>Check Out</th>
+              </tr>
+            </thead>
 
-<Navbar/>
+            <tbody>
+              {bookings.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.booking_reference}</td>
 
-<div className="row">
+                  <td>
+                    <StatusBadge status={item.status} />
+                  </td>
 
-<div className="col-md-2">
-<Sidebar/>
-</div>
+                  <td>{item.check_in}</td>
 
-<div className="col-md-10 p-4">
-
-<h2>My Bookings</h2>
-
-<table className="table">
-
-<thead>
-
-<tr>
-
-<th>Reference</th>
-
-<th>Status</th>
-
-<th>Check In</th>
-
-<th>Check Out</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{
-bookings.map(item=>(
-
-<tr key={item.id}>
-
-<td>
-{item.booking_reference}
-</td>
-
-<td>
-
-<StatusBadge
- status={item.status}
-/>
-
-</td>
-
-<td>
-{item.check_in}
-</td>
-
-<td>
-{item.check_out}
-</td>
-
-</tr>
-
-))
-}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</>
-
-);
-
+                  <td>{item.check_out}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
 }

@@ -1,106 +1,65 @@
-import {
- useEffect,
- useState
-} from "react";
+import { useEffect, useState } from "react";
 
-import Navbar
-from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
-import Sidebar
-from "../components/Sidebar";
+import Sidebar from "../components/Sidebar";
 
-import {
- getRooms
-}
-from "../api/roomApi";
+import { getRooms } from "../api/roomApi";
 
-export default function Rooms(){
+export default function Rooms() {
+  const [rooms, setRooms] = useState([]);
 
-const [rooms,setRooms] =
-useState([]);
+  useEffect(() => {
+    loadRooms();
+  }, []);
 
-useEffect(()=>{
+  const loadRooms = async () => {
+    const res = await getRooms();
 
-loadRooms();
+    setRooms(res.data);
+  };
 
-},[]);
+  return (
+    <>
+      <Navbar />
 
-const loadRooms =
-async()=>{
+      <div className="row">
+        <div className="col-md-2">
+          <Sidebar />
+        </div>
 
-const res =
-await getRooms();
+        <div className="col-md-10 p-4">
+          <h2>Rooms</h2>
 
-setRooms(
- res.data
-);
+          <table className="table">
+            <thead>
+              <tr>
+                <th>ID</th>
 
-};
+                <th>Room No</th>
 
-return(
+                <th>Type</th>
 
-<>
+                <th>Price</th>
+              </tr>
+            </thead>
 
-<Navbar/>
+            <tbody>
+              {rooms.map((room) => (
+                <tr key={room.id}>
+                  <td>{room.id}</td>
 
-<div className="row">
+                  <td>{room.room_no}</td>
 
-<div className="col-md-2">
-<Sidebar/>
-</div>
+                  <td>{room.room_type}</td>
 
-<div className="col-md-10 p-4">
-
-<h2>Rooms</h2>
-
-<table className="table">
-
-<thead>
-
-<tr>
-
-<th>ID</th>
-
-<th>Room No</th>
-
-<th>Type</th>
-
-<th>Price</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{
-rooms.map(room=>(
-
-<tr key={room.id}>
-
-<td>{room.id}</td>
-
-<td>{room.room_no}</td>
-
-<td>{room.room_type}</td>
-
-<td>{room.price}</td>
-
-</tr>
-
-))
-}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</>
-
-);
-
+                  <td>{room.price}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
 }

@@ -1,94 +1,47 @@
-import {
- useEffect,
- useState
-}
-from "react";
+import { useEffect, useState } from "react";
 
-import Navbar
-from "../components/Navbar";
+import Navbar from "../components/Navbar";
 
-import Sidebar
-from "../components/Sidebar";
+import Sidebar from "../components/Sidebar";
 
-import FullCalendar
-from "@fullcalendar/react";
+import FullCalendar from "@fullcalendar/react";
 
-import dayGridPlugin
-from "@fullcalendar/daygrid";
+import dayGridPlugin from "@fullcalendar/daygrid";
 
-import {
- bungalowCalendar
-}
-from "../api/calendarApi";
+import { bungalowCalendar } from "../api/calendarApi";
 
-export default function Calendar(){
+export default function Calendar() {
+  const [events, setEvents] = useState([]);
 
-const [events,
-setEvents]
-=
-useState([]);
+  useEffect(() => {
+    loadCalendar();
+  }, []);
 
-useEffect(()=>{
+  const loadCalendar = async () => {
+    const res = await bungalowCalendar(1);
 
-loadCalendar();
+    setEvents(res.data);
+  };
 
-},[]);
+  return (
+    <>
+      <Navbar />
 
-const loadCalendar =
-async()=>{
+      <div className="row">
+        <div className="col-md-2">
+          <Sidebar />
+        </div>
 
-const res =
-await bungalowCalendar(
- 1
-);
+        <div className="col-md-10 p-4">
+          <h2>Booking Calendar</h2>
 
-setEvents(
- res.data
-);
-
-};
-
-return(
-
-<>
-
-<Navbar/>
-
-<div className="row">
-
-<div className="col-md-2">
-
-<Sidebar/>
-
-</div>
-
-<div className="col-md-10 p-4">
-
-<h2>
-
-Booking Calendar
-
-</h2>
-
-<FullCalendar
-
-plugins={[
- dayGridPlugin
-]}
-
-initialView=
-"dayGridMonth"
-
-events={events}
-
-/>
-
-</div>
-
-</div>
-
-</>
-
-);
-
+          <FullCalendar
+            plugins={[dayGridPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+          />
+        </div>
+      </div>
+    </>
+  );
 }

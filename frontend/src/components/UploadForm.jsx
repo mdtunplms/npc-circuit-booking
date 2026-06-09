@@ -1,78 +1,27 @@
-import {
- useState
-}
-from "react";
+import { useState } from "react";
 
-import {
- uploadForm
-}
-from "../api/bookingApi";
+import { uploadForm } from "../api/bookingApi";
 
-export default function
-UploadForm({
- bookingId
-}){
+export default function UploadForm({ bookingId }) {
+  const [file, setFile] = useState(null);
 
-const [file,
-setFile]
-=
-useState(null);
+  const submit = async () => {
+    const formData = new FormData();
 
-const submit =
-async()=>{
+    formData.append("file", file);
 
-const formData =
-new FormData();
+    await uploadForm(bookingId, formData);
 
-formData.append(
- "file",
- file
-);
+    alert("Uploaded");
+  };
 
-await uploadForm(
- bookingId,
- formData
-);
+  return (
+    <div>
+      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
 
-alert(
- "Uploaded"
- );
-
-};
-
-return(
-
-<div>
-
-<input
-
-type="file"
-
-onChange={(e)=>
-
-setFile(
- e.target.files[0]
-)
-
-}
-
-/>
-
-<button
-
-className=
-"btn btn-primary"
-
-onClick={submit}
-
->
-
-Upload
-
-</button>
-
-</div>
-
-);
-
+      <button className="btn btn-primary" onClick={submit}>
+        Upload
+      </button>
+    </div>
+  );
 }
