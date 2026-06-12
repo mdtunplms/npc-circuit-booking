@@ -38,6 +38,12 @@ export default function Sidebar() {
             Manage Bookings
           </Link>
         )}
+
+        {user?.role === "SUPER_ADMIN" && (
+          <Link to="/users" className="list-group-item">
+            User Management
+          </Link>
+        )}
       </ul>
     </div>
   );

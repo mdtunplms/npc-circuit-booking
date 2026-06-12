@@ -58,6 +58,28 @@ export default function Register() {
           }
         />
 
+        <input
+          className="form-control mb-2"
+          placeholder="Institution"
+          onChange={(e) =>
+            setForm({
+              ...form,
+              institution: e.target.value,
+            })
+          }
+        />
+
+        <input
+          className="form-control mb-2"
+          placeholder="Mobile No"
+          onChange={(e) =>
+            setForm({
+              ...form,
+              mobile_no: e.target.value,
+            })
+          }
+        />
+
         <button className="btn btn-success">Register</button>
       </form>
     </div>

@@ -4,15 +4,29 @@ import {
 from "react-router-dom";
 
 export default function
-ProtectedRoute({children}){
+ProtectedRoute({children, roles}){
 
 const token =
 localStorage.getItem(
  "token"
 );
 
-return token
- ? children
- : <Navigate to="/" />;
+const user =
+JSON.parse(
+ localStorage.getItem("user") || "null"
+);
+
+if (!token) {
+ return <Navigate to="/" />;
+}
+
+if (
+ roles?.length &&
+ !roles.includes(user?.role)
+) {
+ return <Navigate to="/dashboard" />;
+}
+
+return children;
 
 }

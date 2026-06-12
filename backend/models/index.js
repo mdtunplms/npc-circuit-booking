@@ -16,6 +16,18 @@ Room.belongsTo(Bungalow);
 User.hasMany(Booking);
 Booking.belongsTo(User);
 
+// User -> Assigned Bungalow
+
+Bungalow.hasMany(User, {
+  foreignKey: "assigned_bungalow_id",
+  as: "assignedAdmins"
+});
+
+User.belongsTo(Bungalow, {
+  foreignKey: "assigned_bungalow_id",
+  as: "assignedBungalow"
+});
+
 
 // Bungalow -> Bookings
 

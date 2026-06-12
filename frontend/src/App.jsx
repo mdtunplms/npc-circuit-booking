@@ -18,6 +18,8 @@ import AdminBookings from "./pages/AdminBookings";
 
 import RoomCalendar from "./pages/RoomCalendar";
 
+import Users from "./pages/Users";
+
 function App() {
   return (
     <BrowserRouter>
@@ -85,6 +87,15 @@ function App() {
           element={
             <ProtectedRoute>
               <RoomCalendar />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN"]}>
+              <Users />
             </ProtectedRoute>
           }
         />

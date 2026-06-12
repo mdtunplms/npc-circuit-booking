@@ -223,20 +223,20 @@ exports.roleDashboard = async (req, res) => {
 
     const myBookings = await Booking.count({
       where: {
-        user_id: req.user.id,
+        userId: req.user.id,
       },
     });
 
     const pendingRequests = await Booking.count({
       where: {
-        user_id: req.user.id,
+        userId: req.user.id,
         status: "PENDING",
       },
     });
 
     const approvedRequests = await Booking.count({
       where: {
-        user_id: req.user.id,
+        userId: req.user.id,
         status: "APPROVED",
       },
     });

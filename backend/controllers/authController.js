@@ -5,7 +5,23 @@ const { User } = require("../models");
 
 exports.register = async (req, res) => {
   try {
-    const { full_name, email, password } = req.body;
+    const {
+      full_name,
+      email,
+      password,
+      institution,
+      mobile_no,
+    } = req.body;
+
+    const exists = await User.findOne({
+      where: { email },
+    });
+
+    if (exists) {
+      return res.status(400).json({
+        message: "Email already exists",
+      });
+    }
 
     const hash = await bcrypt.hash(password, 10);
 
@@ -13,11 +29,22 @@ exports.register = async (req, res) => {
       full_name,
       email,
       password: hash,
+      institution,
+      mobile_no,
     });
 
-    res.json(user);
+    res.status(201).json({
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      institution: user.institution,
+      mobile_no: user.mobile_no,
+      role: user.role,
+    });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
@@ -63,7 +90,10 @@ exports.login = async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
+        institution: user.institution,
+        mobile_no: user.mobile_no,
         role: user.role,
+        assigned_bungalow_id: user.assigned_bungalow_id,
       },
     });
   } catch (err) {
