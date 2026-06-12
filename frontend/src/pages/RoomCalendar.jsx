@@ -20,10 +20,13 @@ export default function RoomCalendar() {
   };
 
   return (
-    <FullCalendar
-      plugins={[dayGridPlugin]}
-      initialView="dayGridMonth"
-      events={events}
-    />
+    <div className="panel-card calendar-panel">
+      <FullCalendar
+        plugins={[dayGridPlugin]}
+        initialView="dayGridMonth"
+        events={events}
+        height="auto"
+      />
+    </div>
   );
 }

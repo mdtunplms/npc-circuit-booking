@@ -23,42 +23,57 @@ export default function Rooms() {
     <>
       <Navbar />
 
-      <div className="row">
-        <div className="col-md-2">
-          <Sidebar />
-        </div>
+      <div className="app-shell">
+        <Sidebar />
 
-        <div className="col-md-10 p-4">
-          <h2>Rooms</h2>
+        <main className="app-content">
+          <div className="app-page-header">
+            <div>
+              <h2>Rooms</h2>
+              <p>Browse available circuit bungalow rooms and pricing.</p>
+            </div>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>ID</th>
+            <span className="app-chip">{rooms.length} rooms</span>
+          </div>
 
-                <th>Room No</th>
+          <div className="table-card">
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
 
-                <th>Type</th>
+                  <th>Room No</th>
 
-                <th>Price</th>
-              </tr>
-            </thead>
+                  <th>Type</th>
 
-            <tbody>
-              {rooms.map((room) => (
-                <tr key={room.id}>
-                  <td>{room.id}</td>
-
-                  <td>{room.room_no}</td>
-
-                  <td>{room.room_type}</td>
-
-                  <td>{room.price}</td>
+                  <th>Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {rooms.map((room) => (
+                  <tr key={room.id}>
+                    <td>{room.id}</td>
+
+                    <td>{room.room_number || room.room_no}</td>
+
+                    <td>
+                      <span className="badge text-bg-success">
+                        {room.room_type}
+                      </span>
+                    </td>
+
+                    <td>Rs. {Number(room.price || 0).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {!rooms.length && (
+              <div className="empty-state">No rooms found.</div>
+            )}
+          </div>
+        </main>
       </div>
     </>
   );

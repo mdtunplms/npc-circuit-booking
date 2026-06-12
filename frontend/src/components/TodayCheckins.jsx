@@ -16,14 +16,18 @@ export default function TodayCheckins() {
   };
 
   return (
-    <div className="card p-3">
+    <div className="panel-card">
       <h5>Today's Check-ins</h5>
 
-      <ul>
+      <ul className="today-list">
         {items.map((item) => (
           <li key={item.id}>{item.booking_reference}</li>
         ))}
       </ul>
+
+      {!items.length && (
+        <div className="empty-state">No check-ins scheduled today.</div>
+      )}
     </div>
   );
 }

@@ -47,69 +47,117 @@ export default function CreateBooking() {
     <>
       <Navbar />
 
-      <div className="row">
-        <div className="col-md-2">
-          <Sidebar />
-        </div>
+      <div className="app-shell">
+        <Sidebar />
 
-        <div className="col-md-10 p-4">
-          <h2>Create Booking</h2>
+        <main className="app-content">
+          <div className="app-page-header">
+            <div>
+              <h2>Create Booking</h2>
+              <p>Select a room, dates, and purpose to submit your request.</p>
+            </div>
+          </div>
 
-          <form onSubmit={submit}>
-            <select
-              className="form-control mb-2"
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  roomIds: e.target.value,
-                })
-              }
-            >
-              <option>Select Room</option>
+          <form className="form-panel" onSubmit={submit}>
+            <div className="row g-3">
+              <div className="col-md-6">
+                <label className="form-label">Room</label>
 
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.room_no}
-                </option>
-              ))}
-            </select>
+                <select
+                  className="form-select"
+                  required
+                  value={form.roomIds}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      roomIds: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select Room</option>
 
-            <input
-              type="date"
-              className="form-control mb-2"
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  check_in: e.target.value,
-                })
-              }
-            />
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.room_number || room.room_no} - {room.room_type}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <input
-              type="date"
-              className="form-control mb-2"
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  check_out: e.target.value,
-                })
-              }
-            />
+              <div className="col-md-3">
+                <label className="form-label">Check In</label>
 
-            <textarea
-              className="form-control mb-2"
-              placeholder="Purpose"
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  purpose: e.target.value,
-                })
-              }
-            />
+                <input
+                  type="date"
+                  className="form-control"
+                  required
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      check_in: e.target.value,
+                    })
+                  }
+                />
+              </div>
 
-            <button className="btn btn-success">Submit Booking</button>
+              <div className="col-md-3">
+                <label className="form-label">Check Out</label>
+
+                <input
+                  type="date"
+                  className="form-control"
+                  required
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      check_out: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="col-md-4">
+                <label className="form-label">Guests</label>
+
+                <input
+                  type="number"
+                  min="1"
+                  className="form-control"
+                  value={form.guests_count}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      guests_count: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="col-md-8">
+                <label className="form-label">Purpose</label>
+
+                <textarea
+                  className="form-control"
+                  rows="4"
+                  required
+                  placeholder="Official visit, training program, family stay..."
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      purpose: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="col-12 quick-actions">
+                <button className="btn btn-success" type="submit">
+                  Submit Booking
+                </button>
+              </div>
+            </div>
           </form>
-        </div>
+        </main>
       </div>
     </>
   );

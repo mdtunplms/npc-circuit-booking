@@ -1,38 +1,30 @@
+import {
+  FaBed,
+  FaBuilding,
+  FaCalendarCheck,
+  FaClock,
+  FaRegCheckCircle,
+  FaUsers,
+} from "react-icons/fa";
+
+const MetricCard = ({ icon, label, value }) => (
+  <div className="col-xl-3 col-md-6 mb-3">
+    <div className="metric-card">
+      <span className="metric-icon">{icon}</span>
+      <h6>{label}</h6>
+      <h2>{value ?? 0}</h2>
+    </div>
+  </div>
+);
+
 export default function DashboardCards({ role, data }) {
   if (role === "SUPER_ADMIN") {
     return (
       <div className="row">
-        <div className="col-md-3">
-          <div className="card p-3">
-            <h6>Users</h6>
-
-            <h2>{data.totalUsers}</h2>
-          </div>
-        </div>
-
-        <div className="col-md-3">
-          <div className="card p-3">
-            <h6>Bungalows</h6>
-
-            <h2>{data.totalBungalows}</h2>
-          </div>
-        </div>
-
-        <div className="col-md-3">
-          <div className="card p-3">
-            <h6>Rooms</h6>
-
-            <h2>{data.totalRooms}</h2>
-          </div>
-        </div>
-
-        <div className="col-md-3">
-          <div className="card p-3">
-            <h6>Bookings</h6>
-
-            <h2>{data.totalBookings}</h2>
-          </div>
-        </div>
+        <MetricCard icon={<FaUsers />} label="Users" value={data.totalUsers} />
+        <MetricCard icon={<FaBuilding />} label="Bungalows" value={data.totalBungalows} />
+        <MetricCard icon={<FaBed />} label="Rooms" value={data.totalRooms} />
+        <MetricCard icon={<FaCalendarCheck />} label="Bookings" value={data.totalBookings} />
       </div>
     );
   }
@@ -40,50 +32,17 @@ export default function DashboardCards({ role, data }) {
   if (role === "ADMIN") {
     return (
       <div className="row">
-        <div className="col-md-6">
-          <div className="card p-3">
-            <h6>Pending</h6>
-
-            <h2>{data.pendingBookings}</h2>
-          </div>
-        </div>
-
-        <div className="col-md-6">
-          <div className="card p-3">
-            <h6>Approved</h6>
-
-            <h2>{data.approvedBookings}</h2>
-          </div>
-        </div>
+        <MetricCard icon={<FaClock />} label="Pending" value={data.pendingBookings} />
+        <MetricCard icon={<FaRegCheckCircle />} label="Approved" value={data.approvedBookings} />
       </div>
     );
   }
 
   return (
     <div className="row">
-      <div className="col-md-4">
-        <div className="card p-3">
-          <h6>My Bookings</h6>
-
-          <h2>{data.myBookings}</h2>
-        </div>
-      </div>
-
-      <div className="col-md-4">
-        <div className="card p-3">
-          <h6>Pending</h6>
-
-          <h2>{data.pendingRequests}</h2>
-        </div>
-      </div>
-
-      <div className="col-md-4">
-        <div className="card p-3">
-          <h6>Approved</h6>
-
-          <h2>{data.approvedRequests}</h2>
-        </div>
-      </div>
+      <MetricCard icon={<FaCalendarCheck />} label="My Bookings" value={data.myBookings} />
+      <MetricCard icon={<FaClock />} label="Pending" value={data.pendingRequests} />
+      <MetricCard icon={<FaRegCheckCircle />} label="Approved" value={data.approvedRequests} />
     </div>
   );
 }

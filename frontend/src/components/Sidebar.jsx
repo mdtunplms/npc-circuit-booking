@@ -1,50 +1,65 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+import {
+  FaBed,
+  FaCalendarAlt,
+  FaClipboardCheck,
+  FaHome,
+  FaPlusCircle,
+  FaRegListAlt,
+  FaUsersCog,
+} from "react-icons/fa";
 
 export default function Sidebar() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
+  const linkClass = ({ isActive }) =>
+    isActive ? "sidebar-link active" : "sidebar-link";
+
   return (
-    <div
-      className="bg-light p-3"
-      style={{
-        minHeight: "100vh",
-      }}
-    >
-      <h5>Menu</h5>
+    <aside className="sidebar">
+      <h5 className="sidebar-title">Workspace</h5>
 
-      <ul className="list-group">
-        <Link to="/dashboard" className="list-group-item">
+      <nav className="sidebar-list">
+        <NavLink to="/dashboard" className={linkClass}>
+          <FaHome />
           Dashboard
-        </Link>
+        </NavLink>
 
-        <Link to="/rooms" className="list-group-item">
+        <NavLink to="/rooms" className={linkClass}>
+          <FaBed />
           Rooms
-        </Link>
+        </NavLink>
 
-        <Link to="/calendar" className="list-group-item">
+        <NavLink to="/calendar" className={linkClass}>
+          <FaCalendarAlt />
           Calendar
-        </Link>
+        </NavLink>
 
-        <Link to="/my-bookings" className="list-group-item">
+        <NavLink to="/my-bookings" className={linkClass}>
+          <FaRegListAlt />
           My Bookings
-        </Link>
+        </NavLink>
 
-        <Link to="/create-booking" className="list-group-item">
+        <NavLink to="/create-booking" className={linkClass}>
+          <FaPlusCircle />
           Create Booking
-        </Link>
+        </NavLink>
 
         {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
-          <Link to="/admin-bookings" className="list-group-item">
+          <NavLink to="/admin-bookings" className={linkClass}>
+            <FaClipboardCheck />
             Manage Bookings
-          </Link>
+          </NavLink>
         )}
 
         {user?.role === "SUPER_ADMIN" && (
-          <Link to="/users" className="list-group-item">
+          <NavLink to="/users" className={linkClass}>
+            <FaUsersCog />
             User Management
-          </Link>
+          </NavLink>
         )}
-      </ul>
-    </div>
+      </nav>
+    </aside>
   );
 }

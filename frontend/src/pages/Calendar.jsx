@@ -27,20 +27,28 @@ export default function Calendar() {
     <>
       <Navbar />
 
-      <div className="row">
-        <div className="col-md-2">
-          <Sidebar />
-        </div>
+      <div className="app-shell">
+        <Sidebar />
 
-        <div className="col-md-10 p-4">
-          <h2>Booking Calendar</h2>
+        <main className="app-content">
+          <div className="app-page-header">
+            <div>
+              <h2>Booking Calendar</h2>
+              <p>View booking activity by date across the bungalow calendar.</p>
+            </div>
 
-          <FullCalendar
-            plugins={[dayGridPlugin]}
-            initialView="dayGridMonth"
-            events={events}
-          />
-        </div>
+            <span className="app-chip">{events.length} calendar items</span>
+          </div>
+
+          <div className="panel-card calendar-panel">
+            <FullCalendar
+              plugins={[dayGridPlugin]}
+              initialView="dayGridMonth"
+              events={events}
+              height="auto"
+            />
+          </div>
+        </main>
       </div>
     </>
   );

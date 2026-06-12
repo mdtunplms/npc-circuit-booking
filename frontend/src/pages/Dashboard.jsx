@@ -50,8 +50,15 @@ export default function Dashboard() {
       <>
         <Navbar />
 
-        <div className="container mt-4">
-          <h4>Loading Dashboard...</h4>
+        <div className="app-shell">
+          <Sidebar />
+
+          <main className="app-content">
+            <div className="panel-card">
+              <h4>Loading dashboard...</h4>
+              <p>Preparing your booking workspace.</p>
+            </div>
+          </main>
         </div>
       </>
     );
@@ -61,31 +68,24 @@ export default function Dashboard() {
     <>
       <Navbar />
 
-      <div className="row">
-        {/* Sidebar */}
+      <div className="app-shell">
+        <Sidebar />
 
-        <div className="col-md-2">
-          <Sidebar />
-        </div>
+        <main className="app-content">
+          <div className="app-page-header">
+            <div>
+              <h2>Dashboard</h2>
+              <p>Welcome {user?.full_name}. Here is your booking activity overview.</p>
+            </div>
 
-        {/* Main Content */}
-
-        <div className="col-md-10 p-4">
-          <h2>Dashboard</h2>
-
-          <hr />
-
-          <h4>Welcome {user?.full_name}</h4>
-
-          <p>Role : {user?.role}</p>
-
-          {/* Role Based Statistics */}
+            <span className="app-chip">
+              Role: {user?.role}
+            </span>
+          </div>
 
           {dashboard && (
             <DashboardCards role={dashboard.role} data={dashboard} />
           )}
-
-          {/* ADMIN ONLY */}
 
           {user?.role === "ADMIN" && (
             <div className="row mt-4">
@@ -99,31 +99,25 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ADMIN + SUPER ADMIN */}
-
           {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
             <div className="row mt-4">
               <div className="col-lg-8 col-md-12">
-                <div className="card shadow-sm">
-                  <div className="card-body">
-                    <h5 className="card-title mb-3">
-                      Monthly Occupancy Report
-                    </h5>
+                <div className="panel-card">
+                  <h5>Monthly Occupancy Report</h5>
 
-                    <div
-                      style={{
-                        height: "280px",
-                        width: "100%",
-                      }}
-                    >
-                      <OccupancyChart report={report} />
-                    </div>
+                  <div
+                    style={{
+                      height: "300px",
+                      width: "100%",
+                    }}
+                  >
+                    <OccupancyChart report={report} />
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </>
   );

@@ -41,56 +41,73 @@ export default function AdminBookings() {
     <>
       <Navbar />
 
-      <div className="row">
-        <div className="col-md-2">
-          <Sidebar />
-        </div>
+      <div className="app-shell">
+        <Sidebar />
 
-        <div className="col-md-10 p-4">
-          <h2>Pending Bookings</h2>
+        <main className="app-content">
+          <div className="app-page-header">
+            <div>
+              <h2>Pending Bookings</h2>
+              <p>Review booking requests and take approval action quickly.</p>
+            </div>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Reference</th>
+            <span className="app-chip">{bookings.length} pending</span>
+          </div>
 
-                <th>User</th>
+          <div className="table-card">
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>Reference</th>
 
-                <th>Status</th>
+                  <th>User</th>
 
-                <th>Action</th>
-              </tr>
-            </thead>
+                  <th>Status</th>
 
-            <tbody>
-              {bookings.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.booking_reference}</td>
-
-                  <td>{item.User?.full_name}</td>
-
-                  <td>{item.status}</td>
-
-                  <td>
-                    <button
-                      className="btn btn-success me-2"
-                      onClick={() => approve(item.id)}
-                    >
-                      Approve
-                    </button>
-
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => reject(item.id)}
-                    >
-                      Reject
-                    </button>
-                  </td>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {bookings.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.booking_reference}</td>
+
+                    <td>{item.User?.full_name}</td>
+
+                    <td>
+                      <span className="badge text-bg-warning">
+                        {item.status}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="booking-action-bar">
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() => approve(item.id)}
+                        >
+                          Approve
+                        </button>
+
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => reject(item.id)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {!bookings.length && (
+              <div className="empty-state">No pending booking requests.</div>
+            )}
+          </div>
+        </main>
       </div>
     </>
   );
