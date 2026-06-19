@@ -279,6 +279,44 @@
   flex-wrap: wrap;
 }
 
+.room-management-form {
+  margin-bottom: 18px;
+}
+
+.room-table-card {
+  overflow-x: auto;
+}
+
+.booking-date-input {
+  cursor: pointer;
+}
+
+.booking-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.booking-availability {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+
+.booking-availability-success {
+  border: 1px solid #b8d8c6;
+  background: #edf8f1;
+  color: #1f6b43;
+}
+
+.booking-availability-error {
+  border: 1px solid #efc0bd;
+  background: #fff0ef;
+  color: #9b2d25;
+}
+
 .calendar-panel {
   padding: 18px;
 }

@@ -1,6 +1,8 @@
 const router =
 require("express").Router();
 
+const fs = require("fs");
+
 const booking =
 require("../controllers/bookingController");
 
@@ -14,6 +16,10 @@ const storage =
 multer.diskStorage({
 
  destination:(req,file,cb)=>{
+
+  fs.mkdirSync("uploads", {
+   recursive:true
+  });
 
   cb(null,"uploads/");
 
@@ -33,7 +39,18 @@ multer.diskStorage({
 });
 
 const upload =
-multer({storage});
+multer({
+ storage,
+ fileFilter:(req,file,cb)=>{
+  if(file.mimetype !== "application/pdf"){
+   return cb(
+    new Error("Approval form must be a PDF")
+   );
+  }
+
+  cb(null,true);
+ }
+});
 
 
 // CHECK AVAILABILITY

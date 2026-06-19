@@ -28,6 +28,12 @@ router.get(
   roomController.getAllRooms
 );
 
+router.get(
+  "/bungalows",
+  auth,
+  roomController.getBungalows
+);
+
 
 // Get Rooms By Bungalow
 

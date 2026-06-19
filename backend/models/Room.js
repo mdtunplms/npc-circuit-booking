@@ -11,7 +11,8 @@ const Room = sequelize.define("Room", {
   room_type: {
     type: DataTypes.ENUM(
       "AC",
-      "NON_AC"
+      "NON_AC",
+      "HALL"
     ),
     allowNull: false
   },
@@ -19,6 +20,11 @@ const Room = sequelize.define("Room", {
   max_guests: {
     type: DataTypes.INTEGER,
     defaultValue: 2
+  },
+
+  available_beds: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
 
   price: {

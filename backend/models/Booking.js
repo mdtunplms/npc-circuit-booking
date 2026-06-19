@@ -18,6 +18,14 @@ const Booking = sequelize.define("Booking", {
     defaultValue: 1
   },
 
+  room_type: {
+    type: DataTypes.ENUM(
+      "AC",
+      "NON_AC",
+      "HALL"
+    )
+  },
+
   purpose: {
     type: DataTypes.TEXT
   },

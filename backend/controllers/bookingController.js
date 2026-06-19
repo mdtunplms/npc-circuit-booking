@@ -25,6 +25,106 @@ function generateReference() {
 
 }
 
+function normalizeRoomIds(roomIds) {
+  if (!roomIds) {
+    return [];
+  }
+
+  if (Array.isArray(roomIds)) {
+    return roomIds.map(Number).filter(Boolean);
+  }
+
+  return String(roomIds)
+    .split(",")
+    .map(Number)
+    .filter(Boolean);
+}
+
+function dateRangeIsInvalid(checkIn, checkOut) {
+  return (
+    !checkIn ||
+    !checkOut ||
+    new Date(checkIn) >= new Date(checkOut)
+  );
+}
+
+async function findConflictingBookings(roomId, checkIn, checkOut) {
+  return Booking.findAll({
+    include:[
+      {
+        model: Room,
+        as: "rooms",
+        where:{ id: roomId }
+      }
+    ],
+
+    where:{
+      status:{
+        [Op.in]:[
+          "PENDING",
+          "APPROVED"
+        ]
+      },
+
+      [Op.and]:[
+        {
+          check_in:{
+            [Op.lt]:checkOut
+          }
+        },
+
+        {
+          check_out:{
+            [Op.gt]:checkIn
+          }
+        }
+      ]
+    }
+  });
+}
+
+async function getAvailableRooms({
+  bungalowId,
+  roomType,
+  checkIn,
+  checkOut,
+  guestsCount
+}) {
+  const rooms =
+  await Room.findAll({
+    where:{
+      BungalowId:bungalowId,
+      room_type:roomType,
+      status:"AVAILABLE",
+      max_guests:{
+        [Op.gte]:guestsCount
+      }
+    },
+    include:[Bungalow],
+    order:[
+      ["price","ASC"],
+      ["room_number","ASC"]
+    ]
+  });
+
+  const availableRooms = [];
+
+  for(const room of rooms){
+    const conflicts =
+    await findConflictingBookings(
+      room.id,
+      checkIn,
+      checkOut
+    );
+
+    if(conflicts.length === 0){
+      availableRooms.push(room);
+    }
+  }
+
+  return availableRooms;
+}
+
 
 // Check Availability API
 
@@ -35,45 +135,50 @@ async (req,res)=>{
 
     const {
       roomId,
+      bungalowId,
+      room_type,
       check_in,
-      check_out
+      check_out,
+      guests_count = 1
     } = req.body;
 
-    const conflicts =
-      await Booking.findAll({
-
-        include:[
-          {
-          model: Room,
-          as: "rooms",
-          where:{ id: roomId }
-          }
-        ],
-
-        where:{
-          status:{
-            [Op.in]:[
-              "PENDING",
-              "APPROVED"
-            ]
-          },
-
-          [Op.and]:[
-            {
-              check_in:{
-                [Op.lte]:check_out
-              }
-            },
-
-            {
-              check_out:{
-                [Op.gte]:check_in
-              }
-            }
-          ]
-        }
-
+    if(dateRangeIsInvalid(check_in, check_out)){
+      return res.status(400).json({
+        available:false,
+        message:"Check out date must be after check in date"
       });
+    }
+
+    if(bungalowId && room_type){
+      const availableRooms =
+      await getAvailableRooms({
+        bungalowId,
+        roomType:room_type,
+        checkIn:check_in,
+        checkOut:check_out,
+        guestsCount:Number(guests_count || 1)
+      });
+
+      if(availableRooms.length === 0){
+        return res.json({
+          available:false,
+          message:"No available room or hall for the selected dates"
+        });
+      }
+
+      return res.json({
+        available:true,
+        message:"Room or hall available",
+        rooms:availableRooms
+      });
+    }
+
+    const conflicts =
+      await findConflictingBookings(
+        roomId,
+        check_in,
+        check_out
+      );
 
     if(conflicts.length > 0){
 
@@ -114,11 +219,13 @@ try{
 
 let {
 
- bungalowId,
+	 bungalowId,
 
- roomIds,
+	 roomIds,
 
- check_in,
+	 room_type,
+
+	 check_in,
 
  check_out,
 
@@ -126,14 +233,30 @@ let {
 
  guests_count
 
-} = req.body;
+	} = req.body;
 
-// Convert roomIds string to array
-if(typeof roomIds === "string"){
-    roomIds = roomIds.split(",").map(Number);
-}
+	roomIds = normalizeRoomIds(roomIds);
 
-console.log(roomIds);
+	const guestsCount =
+	Number(guests_count || 1);
+
+	if(dateRangeIsInvalid(check_in, check_out)){
+	 return res.status(400).json({
+	  message:"Check out date must be after check in date"
+	 });
+	}
+
+	if(!purpose || !purpose.trim()){
+	 return res.status(400).json({
+	  message:"Visit purpose is required"
+	 });
+	}
+
+	if(!req.file){
+	 return res.status(400).json({
+	  message:"Approval form PDF is required"
+	 });
+	}
 
 const bungalow =
 await Bungalow.findByPk(
@@ -146,50 +269,79 @@ if(!bungalow){
   message:"Bungalow Not Found"
  });
 
-}
+	}
+
+	if(roomIds.length === 0 && room_type){
+	 const availableRooms =
+	 await getAvailableRooms({
+	  bungalowId,
+	  roomType:room_type,
+	  checkIn:check_in,
+	  checkOut:check_out,
+	  guestsCount
+	 });
+
+	 if(availableRooms.length === 0){
+	  return res.status(400).json({
+	   message:"No available room or hall for the selected dates"
+	  });
+	 }
+
+	 roomIds = [
+	  availableRooms[0].id
+	 ];
+	}
+
+	if(roomIds.length === 0){
+	 return res.status(400).json({
+	  message:"Please select a room type or room"
+	 });
+	}
 
 
-// CHECK ALL ROOMS
+	// CHECK ALL ROOMS
 
-for(const roomId of roomIds){
+	for(const roomId of roomIds){
 
- const conflicts =
- await Booking.findAll({
+	 const room =
+	 await Room.findByPk(roomId);
 
- include:[
-  {
-      model: Room,
-      as: "rooms",
-      where:{ id: roomId }
-    }
- ],
+	 if(!room){
+	  return res.status(404).json({
+	   message:`Room ${roomId} not found`
+	  });
+	 }
 
- where:{
+	 if(Number(room.BungalowId) !== Number(bungalowId)){
+	  return res.status(400).json({
+	   message:`Room ${roomId} does not belong to selected bungalow`
+	  });
+	 }
 
- status:{
- [Op.in]:
- ["PENDING","APPROVED"]
- },
+	 if(room_type && room.room_type !== room_type){
+	  return res.status(400).json({
+	   message:`Room ${roomId} does not match selected type`
+	  });
+	 }
 
- [Op.and]:[
-  {
-   check_in:{
-    [Op.lte]:
-    check_out
-   }
-  },
+	 if(room.status !== "AVAILABLE"){
+	  return res.status(400).json({
+	   message:`Room ${roomId} is not available for booking`
+	  });
+	 }
 
-  {
-   check_out:{
-    [Op.gte]:
-    check_in
-   }
-  }
- ]
+	 if(Number(room.max_guests) < guestsCount){
+	  return res.status(400).json({
+	   message:`Room ${roomId} cannot hold ${guestsCount} guests`
+	  });
+	 }
 
- }
-
- });
+	 const conflicts =
+	 await findConflictingBookings(
+	  roomId,
+	  check_in,
+	  check_out
+	 );
 
  if(conflicts.length>0){
 
@@ -219,11 +371,13 @@ await Booking.create({
 
  check_in,
 
- check_out,
+	 check_out,
 
- guests_count,
+		 guests_count:guestsCount,
 
- purpose,
+		 room_type,
+
+		 purpose,
 
  form_file:
  req.file
