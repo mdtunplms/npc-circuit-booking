@@ -17,13 +17,13 @@ export default function AdminBookings() {
     loadBookings();
   }, []);
 
-  const loadBookings = async () => {
+  async function loadBookings() {
     const res = await getPendingBookings();
 
     const pending = res.data.filter((item) => item.status === "PENDING");
 
     setBookings(pending);
-  };
+  }
 
   const approve = async (id) => {
     await approveBooking(id);

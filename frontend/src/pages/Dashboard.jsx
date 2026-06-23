@@ -20,30 +20,30 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const initializeDashboard = async () => {
+      try {
+        // Load dashboard data first
+        const dashboardRes = await roleDashboard();
+
+        setDashboard(dashboardRes.data);
+
+        const role = dashboardRes.data.role;
+
+        // Only Admin/Super Admin load occupancy report
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
+          const reportRes = await occupancyReport();
+
+          setReport(reportRes.data);
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     initializeDashboard();
   }, []);
-
-  const initializeDashboard = async () => {
-    try {
-      // Load dashboard data first
-      const dashboardRes = await roleDashboard();
-
-      setDashboard(dashboardRes.data);
-
-      const role = dashboardRes.data.role;
-
-      // Only Admin/Super Admin load occupancy report
-      if (role === "ADMIN" || role === "SUPER_ADMIN") {
-        const reportRes = await occupancyReport();
-
-        setReport(reportRes.data);
-      }
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

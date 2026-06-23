@@ -10,14 +10,14 @@ export default function RoomCalendar() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
+    const load = async () => {
+      const res = await roomCalendar(1);
+
+      setEvents(res.data);
+    };
+
     load();
   }, []);
-
-  const load = async () => {
-    const res = await roomCalendar(1);
-
-    setEvents(res.data);
-  };
 
   return (
     <div className="panel-card calendar-panel">

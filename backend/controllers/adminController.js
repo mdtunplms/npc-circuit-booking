@@ -1,12 +1,59 @@
 const { Booking, User, Room, Bungalow } = require("../models");
+const { Op } = require("sequelize");
 
 const sendEmail = require("../services/emailService");
+
+const ACTIVE_BOOKING_STATUSES = ["APPROVED", "CHECKED_IN"];
+
+async function bookingHasConflicts(booking) {
+  for (const room of booking.rooms || []) {
+    const conflicts = await Booking.findAll({
+      include: [
+        {
+          model: Room,
+          as: "rooms",
+          where: { id: room.id },
+        },
+      ],
+      where: {
+        id: {
+          [Op.ne]: booking.id,
+        },
+        status: {
+          [Op.in]: ACTIVE_BOOKING_STATUSES,
+        },
+        [Op.and]: [
+          {
+            check_in: {
+              [Op.lt]: booking.check_out,
+            },
+          },
+          {
+            check_out: {
+              [Op.gt]: booking.check_in,
+            },
+          },
+        ],
+      },
+    });
+
+    if (conflicts.length > 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // Get All Bookings
 
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.findAll({
+      where:
+        req.user.role === "ADMIN"
+          ? { BungalowId: req.user.assigned_bungalow_id }
+          : {},
       include: [
         User,
         Bungalow,
@@ -32,7 +79,13 @@ exports.getAllBookings = async (req, res) => {
 exports.approveBooking = async (req, res) => {
   try {
     const booking = await Booking.findByPk(req.params.id, {
-      include: [User],
+      include: [
+        User,
+        {
+          model: Room,
+          as: "rooms",
+        },
+      ],
     });
 
     if (!booking) {
@@ -41,16 +94,37 @@ exports.approveBooking = async (req, res) => {
       });
     }
 
+    if (
+      req.user.role === "ADMIN" &&
+      Number(booking.BungalowId) !== Number(req.user.assigned_bungalow_id)
+    ) {
+      return res.status(403).json({
+        message: "Access Denied",
+      });
+    }
+
+    if (booking.status !== "PENDING") {
+      return res.status(400).json({
+        message: "Only pending bookings can be approved",
+      });
+    }
+
+    if (await bookingHasConflicts(booking)) {
+      return res.status(409).json({
+        message: "Booking conflicts with an already approved booking",
+      });
+    }
+
     booking.status = "APPROVED";
 
     await booking.save();
 
-    await sendEmail(
-      booking.User.email,
-
-      "Booking Approved",
-
-      `
+    if (booking.User?.email) {
+      try {
+        await sendEmail(
+          booking.User.email,
+          "Booking Approved",
+          `
  <h2>Booking Approved</h2>
 
  <p>
@@ -67,7 +141,11 @@ exports.approveBooking = async (req, res) => {
  Your room booking has been approved.
  </p>
  `,
-    );
+        );
+      } catch (emailError) {
+        console.error("Booking approval email failed", emailError);
+      }
+    }
 
     res.json({
       message: "Booking Approved",
@@ -95,16 +173,31 @@ exports.rejectBooking = async (req, res) => {
       });
     }
 
+    if (
+      req.user.role === "ADMIN" &&
+      Number(booking.BungalowId) !== Number(req.user.assigned_bungalow_id)
+    ) {
+      return res.status(403).json({
+        message: "Access Denied",
+      });
+    }
+
+    if (!["PENDING", "APPROVED"].includes(booking.status)) {
+      return res.status(400).json({
+        message: "This booking cannot be rejected",
+      });
+    }
+
     booking.status = "REJECTED";
 
     await booking.save();
 
-    await sendEmail(
-      booking.User.email,
-
-      "Booking Rejected",
-
-      `
+    if (booking.User?.email) {
+      try {
+        await sendEmail(
+          booking.User.email,
+          "Booking Rejected",
+          `
  <h2>Booking Rejected</h2>
 
  <p>
@@ -117,7 +210,11 @@ exports.rejectBooking = async (req, res) => {
  REJECTED
  </p>
  `,
-    );
+        );
+      } catch (emailError) {
+        console.error("Booking rejection email failed", emailError);
+      }
+    }
 
     res.json({
       message: "Booking Rejected",
@@ -223,20 +320,20 @@ exports.roleDashboard = async (req, res) => {
 
     const myBookings = await Booking.count({
       where: {
-        userId: req.user.id,
+        UserId: req.user.id,
       },
     });
 
     const pendingRequests = await Booking.count({
       where: {
-        userId: req.user.id,
+        UserId: req.user.id,
         status: "PENDING",
       },
     });
 
     const approvedRequests = await Booking.count({
       where: {
-        userId: req.user.id,
+        UserId: req.user.id,
         status: "APPROVED",
       },
     });

@@ -14,14 +14,14 @@ export default function Calendar() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
+    const loadCalendar = async () => {
+      const res = await bungalowCalendar(1);
+
+      setEvents(res.data);
+    };
+
     loadCalendar();
   }, []);
-
-  const loadCalendar = async () => {
-    const res = await bungalowCalendar(1);
-
-    setEvents(res.data);
-  };
 
   return (
     <>

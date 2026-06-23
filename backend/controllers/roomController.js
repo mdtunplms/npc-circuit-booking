@@ -1,38 +1,94 @@
 const { Room, Bungalow } = require("../models");
 
+const VALID_ROOM_TYPES = ["AC", "NON_AC", "HALL"];
+const VALID_ROOM_STATUSES = ["AVAILABLE", "MAINTENANCE"];
+
+function isPositiveInteger(value) {
+  return Number.isInteger(Number(value)) && Number(value) > 0;
+}
+
+function isPositiveNumber(value) {
+  return Number.isFinite(Number(value)) && Number(value) > 0;
+}
 
 // Create Room
 
 exports.createRoom = async (req, res) => {
 
   try {
+    const {
+      room_number,
+      room_type,
+      max_guests,
+      price,
+      bungalowId,
+    } = req.body;
+
+    if (!room_number || !String(room_number).trim()) {
+      return res.status(400).json({
+        message: "Room number is required"
+      });
+    }
+
+    if (!VALID_ROOM_TYPES.includes(room_type)) {
+      return res.status(400).json({
+        message: "Invalid room type"
+      });
+    }
+
+    if (!isPositiveNumber(price)) {
+      return res.status(400).json({
+        message: "Price must be greater than 0"
+      });
+    }
+
+    if (!isPositiveInteger(bungalowId)) {
+      return res.status(400).json({
+        message: "Valid bungalow is required"
+      });
+    }
+
+    const bungalow = await Bungalow.findByPk(bungalowId);
+
+    if (!bungalow) {
+      return res.status(404).json({
+        message: "Bungalow not found"
+      });
+    }
+
     const availableBeds =
-      req.body.room_type === "HALL"
-        ? Number(req.body.available_beds || req.body.max_guests || 0)
+      room_type === "HALL"
+        ? Number(req.body.available_beds || max_guests || 0)
         : Number(req.body.available_beds || 0);
 
-    if (req.body.room_type === "HALL" && availableBeds < 1) {
+    if (room_type === "HALL" && !isPositiveInteger(availableBeds)) {
       return res.status(400).json({
         message: "Available beds are required for halls"
       });
     }
 
+    if (room_type !== "HALL" && !isPositiveInteger(max_guests)) {
+      return res.status(400).json({
+        message: "Maximum guests must be at least 1"
+      });
+    }
+
     const room = await Room.create({
 
-      room_number: req.body.room_number,
+      room_number: String(room_number).trim(),
 
-      room_type: req.body.room_type,
+      room_type,
 
       max_guests:
-        req.body.room_type === "HALL"
+        room_type === "HALL"
           ? availableBeds
-          : req.body.max_guests,
+          : Number(max_guests),
 
       available_beds: availableBeds,
 
-      price: req.body.price,
+      price,
 
-      BungalowId: req.body.bungalowId
+      BungalowId: bungalowId
 
     });
 
@@ -146,6 +202,45 @@ exports.updateRoom = async (req, res) => {
     const nextRoomType =
       req.body.room_type || room.room_type;
 
+    if (!VALID_ROOM_TYPES.includes(nextRoomType)) {
+      return res.status(400).json({
+        message: "Invalid room type"
+      });
+    }
+
+    const nextStatus = req.body.status || room.status;
+
+    if (!VALID_ROOM_STATUSES.includes(nextStatus)) {
+      return res.status(400).json({
+        message: "Invalid room status"
+      });
+    }
+
+    const nextBungalowId =
+      req.body.bungalowId || req.body.BungalowId || room.BungalowId;
+
+    if (!isPositiveInteger(nextBungalowId)) {
+      return res.status(400).json({
+        message: "Valid bungalow is required"
+      });
+    }
+
+    const bungalow = await Bungalow.findByPk(nextBungalowId);
+
+    if (!bungalow) {
+      return res.status(404).json({
+        message: "Bungalow not found"
+      });
+    }
+
+    const nextPrice = req.body.price ?? room.price;
+
+    if (!isPositiveNumber(nextPrice)) {
+      return res.status(400).json({
+        message: "Price must be greater than 0"
+      });
+    }
+
     const availableBeds =
       nextRoomType === "HALL"
         ? Number(
@@ -163,28 +258,35 @@ exports.updateRoom = async (req, res) => {
       });
     }
 
+    const nextMaxGuests =
+      nextRoomType === "HALL"
+        ? availableBeds
+        : Number(req.body.max_guests ?? room.max_guests);
+
+    if (!isPositiveInteger(nextMaxGuests)) {
+      return res.status(400).json({
+        message: "Maximum guests must be at least 1"
+      });
+    }
+
     await room.update({
 
       room_number:
-        req.body.room_number || room.room_number,
+        req.body.room_number
+          ? String(req.body.room_number).trim()
+          : room.room_number,
 
       room_type: nextRoomType,
 
-      max_guests:
-        nextRoomType === "HALL"
-          ? availableBeds
-          : req.body.max_guests || room.max_guests,
+      max_guests: nextMaxGuests,
 
       available_beds: availableBeds,
 
-      price:
-        req.body.price || room.price,
+      price: nextPrice,
 
-      status:
-        req.body.status || room.status,
+      status: nextStatus,
 
-      BungalowId:
-        req.body.bungalowId || req.body.BungalowId || room.BungalowId
+      BungalowId: nextBungalowId
 
     });
 

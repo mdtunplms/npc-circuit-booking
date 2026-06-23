@@ -12,14 +12,14 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
+    const loadBookings = async () => {
+      const res = await myBookings();
+
+      setBookings(res.data);
+    };
+
     loadBookings();
   }, []);
-
-  const loadBookings = async () => {
-    const res = await myBookings();
-
-    setBookings(res.data);
-  };
 
   return (
     <>

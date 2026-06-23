@@ -1,10 +1,46 @@
-const { Op } = require("sequelize");
 const {
   Booking,
   User,
   Bungalow,
   Room
 } = require("../models");
+const sendEmail = require("../services/emailService");
+
+async function getBookingForAdmin(req, bookingId) {
+  const booking = await Booking.findByPk(bookingId, {
+    include: [
+      User,
+      Bungalow,
+      {
+        model: Room,
+        as: "rooms"
+      }
+    ]
+  });
+
+  if (!booking) {
+    return {
+      error: {
+        status: 404,
+        message: "Booking Not Found"
+      }
+    };
+  }
+
+  if (
+    req.user.role === "ADMIN" &&
+    Number(booking.BungalowId) !== Number(req.user.assigned_bungalow_id)
+  ) {
+    return {
+      error: {
+        status: 403,
+        message: "Access Denied"
+      }
+    };
+  }
+
+  return { booking };
+}
 
 
 // Bookings for Assigned Bungalow
@@ -22,10 +58,13 @@ await User.findByPk(
 const bookings =
 await Booking.findAll({
 
- where:{
-  BungalowId:
-  admin.assigned_bungalow_id
- },
+ where:
+ req.user.role === "SUPER_ADMIN"
+ ? {}
+ : {
+   BungalowId:
+   admin.assigned_bungalow_id
+  },
 
  include:[
   User,
@@ -66,6 +105,19 @@ if(!user){
 
  return res.status(404).json({
   message:"User Not Found"
+ });
+
+}
+
+const bungalow =
+await Bungalow.findByPk(
+ req.body.bungalowId
+);
+
+if(!bungalow){
+
+ return res.status(404).json({
+  message:"Bungalow Not Found"
  });
 
 }
@@ -181,6 +233,15 @@ if(
 
 }
 
+if(!["PENDING", "APPROVED"].includes(booking.status)){
+
+ return res.status(400).json({
+  message:
+  "This booking cannot be cancelled"
+ });
+
+}
+
 booking.status =
 "CANCELLED";
 
@@ -191,27 +252,33 @@ await User.findByPk(
  booking.UserId
 );
 
-await sendEmail(
+if(user?.email){
+ try{
+  await sendEmail(
 
- user.email,
+  user.email,
 
- "Booking Cancelled",
+  "Booking Cancelled",
 
- `
- <h2>Booking Cancelled</h2>
+  `
+  <h2>Booking Cancelled</h2>
 
- <p>
- Reference:
- ${booking.booking_reference}
- </p>
+  <p>
+  Reference:
+  ${booking.booking_reference}
+  </p>
 
- <p>
- Status:
- CANCELLED
- </p>
- `
+  <p>
+  Status:
+  CANCELLED
+  </p>
+  `
 
-);
+  );
+ }catch(emailError){
+  console.error("Booking cancellation email failed", emailError);
+ }
+}
 
 res.json({
 
@@ -238,14 +305,24 @@ async(req,res)=>{
 try{
 
 const booking =
-await Booking.findByPk(
- req.params.id
-);
+await getBookingForAdmin(req, req.params.id);
 
-booking.status =
+if(booking.error){
+ return res.status(booking.error.status).json({
+  message:booking.error.message
+ });
+}
+
+if(booking.booking.status !== "APPROVED"){
+ return res.status(400).json({
+  message:"Only approved bookings can be checked in"
+ });
+}
+
+booking.booking.status =
 "CHECKED_IN";
 
-await booking.save();
+await booking.booking.save();
 
 res.json({
 
@@ -272,14 +349,24 @@ async(req,res)=>{
 try{
 
 const booking =
-await Booking.findByPk(
- req.params.id
-);
+await getBookingForAdmin(req, req.params.id);
 
-booking.status =
+if(booking.error){
+ return res.status(booking.error.status).json({
+  message:booking.error.message
+ });
+}
+
+if(booking.booking.status !== "CHECKED_IN"){
+ return res.status(400).json({
+  message:"Only checked-in bookings can be checked out"
+ });
+}
+
+booking.booking.status =
 "CHECKED_OUT";
 
-await booking.save();
+await booking.booking.save();
 
 res.json({
 
@@ -305,26 +392,22 @@ async (req, res) => {
 
   try {
 
-    const start = new Date();
-    start.setHours(
-      0,0,0,0
-      );
-    const end = new Date();
-    end.setHours(
-    23,59,59,999
-    );
+    const today = new Date()
+      .toISOString()
+      .split("T")[0];
     
     const bookings =
       await Booking.findAll({
 
       where:{
 
-        check_in:{
-          [Op.between]:
-          [start,end]
-        },
+        check_in:today,
 
-        status:"APPROVED"
+        status:"APPROVED",
+
+        ...(req.user.role === "ADMIN"
+          ? { BungalowId:req.user.assigned_bungalow_id }
+          : {})
       },
 
         include: [
@@ -353,26 +436,22 @@ async (req, res) => {
 
   try {
 
-    const start = new Date();
-    start.setHours(
-      0,0,0,0
-      );
-    const end = new Date();
-    end.setHours(
-    23,59,59,999
-    );
+    const today = new Date()
+      .toISOString()
+      .split("T")[0];
 
     const bookings =
       await Booking.findAll({
 
         where:{
 
-          check_in:{
-            [Op.between]:
-            [start,end]
-          },
+          check_out:today,
 
-          status:"APPROVED"
+          status:"CHECKED_IN",
+
+          ...(req.user.role === "ADMIN"
+            ? { BungalowId:req.user.assigned_bungalow_id }
+            : {})
         },
 
         include: [
@@ -402,13 +481,21 @@ async(req,res)=>{
 try{
 
 const total =
-await Booking.count();
+await Booking.count({
+ where:
+ req.user.role === "ADMIN"
+ ? { BungalowId:req.user.assigned_bungalow_id }
+ : {}
+});
 
 const occupied =
 await Booking.count({
 
  where:{
-  status:"CHECKED_IN"
+  status:"CHECKED_IN",
+  ...(req.user.role === "ADMIN"
+   ? { BungalowId:req.user.assigned_bungalow_id }
+   : {})
  }
 
 });

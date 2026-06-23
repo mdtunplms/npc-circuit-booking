@@ -2,6 +2,7 @@ const router =
 require("express").Router();
 
 const fs = require("fs");
+const path = require("path");
 
 const booking =
 require("../controllers/bookingController");
@@ -17,21 +18,25 @@ multer.diskStorage({
 
  destination:(req,file,cb)=>{
 
-  fs.mkdirSync("uploads", {
+  const uploadDir = path.join(__dirname, "..", "..", "uploads");
+
+  fs.mkdirSync(uploadDir, {
    recursive:true
   });
 
-  cb(null,"uploads/");
+  cb(null,uploadDir);
 
  },
 
  filename:(req,file,cb)=>{
 
+  const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "-");
+
   cb(
    null,
    Date.now()
    + "-"
-   + file.originalname
+   + safeName
   );
 
  }
@@ -41,6 +46,9 @@ multer.diskStorage({
 const upload =
 multer({
  storage,
+ limits:{
+  fileSize:5 * 1024 * 1024
+ },
  fileFilter:(req,file,cb)=>{
   if(file.mimetype !== "application/pdf"){
    return cb(
@@ -67,7 +75,17 @@ router.post(
 router.post(
  "/create",
  auth,
- upload.single("form"),
+ (req,res,next)=>{
+  upload.single("form")(req,res,(err)=>{
+   if(err){
+    return res.status(400).json({
+     message:err.message
+    });
+   }
+
+   next();
+  });
+ },
  booking.createBooking
 );
 

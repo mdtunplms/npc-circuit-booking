@@ -14,6 +14,14 @@ const roomTypeLabels = {
   HALL: "Hall",
 };
 
+const toDateInputValue = (date) => date.toISOString().split("T")[0];
+
+const addDays = (dateValue, days) => {
+  const date = new Date(`${dateValue}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return toDateInputValue(date);
+};
+
 export default function CreateBooking() {
   const [rooms, setRooms] = useState([]);
   const [bungalows, setBungalows] = useState([]);
@@ -110,6 +118,28 @@ export default function CreateBooking() {
   };
 
   const checkSelectedAvailability = async () => {
+    if (
+      !form.bungalowId ||
+      !form.room_type ||
+      !form.check_in ||
+      !form.check_out ||
+      Number(form.guests_count) < 1
+    ) {
+      setAvailability({
+        available: false,
+        message: "Select bungalow, room type, dates, and guest count first.",
+      });
+      return;
+    }
+
+    if (new Date(form.check_out) <= new Date(form.check_in)) {
+      setAvailability({
+        available: false,
+        message: "Check out date must be after check in date.",
+      });
+      return;
+    }
+
     setChecking(true);
 
     try {
@@ -135,6 +165,16 @@ export default function CreateBooking() {
 
     if (!availability?.available) {
       await checkSelectedAvailability();
+      return;
+    }
+
+    if (!form.purpose.trim()) {
+      alert("Please enter the visit purpose.");
+      return;
+    }
+
+    if (!form.approvalForm) {
+      alert("Please upload the approval form PDF.");
       return;
     }
 
@@ -180,6 +220,9 @@ export default function CreateBooking() {
       setSubmitting(false);
     }
   };
+
+  const today = toDateInputValue(new Date());
+  const minCheckOut = form.check_in ? addDays(form.check_in, 1) : today;
 
   return (
     <>
@@ -244,6 +287,7 @@ export default function CreateBooking() {
                   type="date"
                   className="form-control booking-date-input"
                   required
+                  min={today}
                   value={form.check_in}
                   onClick={openDatePicker}
                   onFocus={openDatePicker}
@@ -258,6 +302,7 @@ export default function CreateBooking() {
                   type="date"
                   className="form-control booking-date-input"
                   required
+                  min={minCheckOut}
                   value={form.check_out}
                   onClick={openDatePicker}
                   onFocus={openDatePicker}
@@ -271,6 +316,7 @@ export default function CreateBooking() {
                 <input
                   type="number"
                   min="1"
+                  step="1"
                   className="form-control"
                   required
                   value={form.guests_count}

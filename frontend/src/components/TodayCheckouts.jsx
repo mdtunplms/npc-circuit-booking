@@ -6,14 +6,14 @@ export default function TodayCheckouts() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
+    const load = async () => {
+      const res = await todayCheckouts();
+
+      setItems(res.data);
+    };
+
     load();
   }, []);
-
-  const load = async () => {
-    const res = await todayCheckouts();
-
-    setItems(res.data);
-  };
 
   return (
     <div className="panel-card">

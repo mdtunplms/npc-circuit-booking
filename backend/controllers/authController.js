@@ -3,6 +3,10 @@ const jwt = require("jsonwebtoken");
 
 const { User } = require("../models");
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ""));
+}
+
 exports.register = async (req, res) => {
   try {
     const {
@@ -13,8 +17,26 @@ exports.register = async (req, res) => {
       mobile_no,
     } = req.body;
 
+    if (!full_name || !email || !password) {
+      return res.status(400).json({
+        message: "Full name, email and password are required",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        message: "Valid email is required",
+      });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
     const exists = await User.findOne({
-      where: { email },
+      where: { email: String(email).trim().toLowerCase() },
     });
 
     if (exists) {
@@ -27,7 +49,7 @@ exports.register = async (req, res) => {
 
     const user = await User.create({
       full_name,
-      email,
+      email: String(email).trim().toLowerCase(),
       password: hash,
       institution,
       mobile_no,
@@ -52,8 +74,14 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
     const user = await User.findOne({
-      where: { email },
+      where: { email: String(email).trim().toLowerCase() },
     });
 
     if (!user) {
@@ -74,6 +102,7 @@ exports.login = async (req, res) => {
       {
         id: user.id,
         role: user.role,
+        assigned_bungalow_id: user.assigned_bungalow_id,
       },
 
       process.env.JWT_SECRET,

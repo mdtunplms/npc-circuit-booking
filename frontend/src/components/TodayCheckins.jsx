@@ -6,14 +6,14 @@ export default function TodayCheckins() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
+    const load = async () => {
+      const res = await todayCheckins();
+
+      setItems(res.data);
+    };
+
     load();
   }, []);
-
-  const load = async () => {
-    const res = await todayCheckins();
-
-    setItems(res.data);
-  };
 
   return (
     <div className="panel-card">

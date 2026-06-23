@@ -42,17 +42,17 @@ export default function Users() {
     loadBungalows();
   }, []);
 
-  const loadUsers = async () => {
+  async function loadUsers() {
     const res = await getUsers();
 
     setUsers(res.data);
-  };
+  }
 
-  const loadBungalows = async () => {
+  async function loadBungalows() {
     const res = await getBungalows();
 
     setBungalows(res.data);
-  };
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
