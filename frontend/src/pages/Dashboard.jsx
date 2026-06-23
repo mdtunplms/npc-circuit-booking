@@ -7,8 +7,47 @@ import DashboardCards from "../components/DashboardCards";
 import OccupancyChart from "../components/OccupancyChart";
 import TodayCheckins from "../components/TodayCheckins";
 import TodayCheckouts from "../components/TodayCheckouts";
+import StatusBadge from "../components/StatusBadge";
 
 import { roleDashboard, occupancyReport } from "../api/adminApi";
+import { myBookings } from "../api/bookingApi";
+
+const activeBookingStatuses = ["APPROVED", "PENDING"];
+
+const formatDate = (dateValue) => {
+  if (!dateValue) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  }).format(new Date(`${dateValue}T00:00:00`));
+};
+
+const formatCurrency = (value) => (
+  Number(value || 0).toLocaleString("en", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+);
+
+const roomTypeLabel = (type) => ({
+  AC: "A/C Room",
+  NON_AC: "Non A/C Room",
+  HALL: "Hall",
+}[type] || type || "-");
+
+const roomSummary = (rooms = []) => {
+  if (!rooms.length) {
+    return "-";
+  }
+
+  return rooms
+    .map((room) => `${room.room_number} (${roomTypeLabel(room.room_type)})`)
+    .join(", ");
+};
 
 export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -16,6 +55,8 @@ export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
 
   const [report, setReport] = useState(null);
+
+  const [upcomingBookings, setUpcomingBookings] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -34,6 +75,24 @@ export default function Dashboard() {
           const reportRes = await occupancyReport();
 
           setReport(reportRes.data);
+        }
+
+        if (role === "USER") {
+          const bookingsRes = await myBookings();
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const upcoming = bookingsRes.data
+            .filter((booking) => (
+              activeBookingStatuses.includes(booking.status) &&
+              new Date(`${booking.check_in}T00:00:00`) >= today
+            ))
+            .sort((a, b) => (
+              new Date(`${a.check_in}T00:00:00`) -
+              new Date(`${b.check_in}T00:00:00`)
+            ));
+
+          setUpcomingBookings(upcoming);
         }
       } catch (err) {
         console.log(err);
@@ -85,6 +144,69 @@ export default function Dashboard() {
 
           {dashboard && (
             <DashboardCards role={dashboard.role} data={dashboard} />
+          )}
+
+          {user?.role === "USER" && (
+            <div className="table-card mt-4">
+              <div className="table-card-header">
+                <div>
+                  <h5>Upcoming Bookings</h5>
+                  <p>Approved and pending room or hall requests.</p>
+                </div>
+
+                <span className="app-chip">
+                  {upcomingBookings.length} upcoming
+                </span>
+              </div>
+
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Bungalow</th>
+                      <th>Room / Hall</th>
+                      <th>Dates</th>
+                      <th>Guests</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {upcomingBookings.map((booking) => (
+                      <tr key={booking.id}>
+                        <td>{booking.booking_reference}</td>
+                        <td>
+                          <strong>{booking.Bungalow?.name || "-"}</strong>
+                          <span className="table-muted-line">
+                            {booking.Bungalow?.location || ""}
+                          </span>
+                        </td>
+                        <td>{roomSummary(booking.rooms)}</td>
+                        <td>
+                          {formatDate(booking.check_in)}
+                          <span className="table-muted-line">
+                            to {formatDate(booking.check_out)}
+                          </span>
+                        </td>
+                        <td>{booking.guests_count}</td>
+                        <td>Rs. {formatCurrency(booking.total_amount)}</td>
+                        <td>
+                          <StatusBadge status={booking.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {!upcomingBookings.length && (
+                <div className="empty-state">
+                  No upcoming approved or pending bookings.
+                </div>
+              )}
+            </div>
           )}
 
           {user?.role === "ADMIN" && (

@@ -217,6 +217,32 @@
   margin-bottom: 0;
 }
 
+.table-card-header {
+  padding: 18px 18px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.table-card-header h5 {
+  margin: 0;
+  color: #1f2420;
+  font-weight: 850;
+}
+
+.table-card-header p {
+  margin: 5px 0 14px;
+  color: #66706a;
+}
+
+.table-muted-line {
+  display: block;
+  margin-top: 4px;
+  color: #66706a;
+  font-size: 0.84rem;
+}
+
 .table-card thead th {
   padding: 14px 16px;
   background: #f0f5f2;
